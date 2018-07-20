@@ -10,10 +10,27 @@ contract LDelayBase is Ownable {
     mapping (address => uint) private balances;
     mapping (address => uint) private coverages;
     mapping (address => uint) private claims;
+    mapping (uint => Policy) policies;
+
+    struct Beneficiary {
+        uint beneficiaryID;
+        address beneficiaryAddress;
+    }
+
+    struct Policy {
+        uint beneficiaryID;
+        uint premium;
+        uint coverageLimit;
+        uint coverageTimeLimit;
+    }
 
     uint totalCoverage;
     uint claimid;
+    uint beneficiaryID;
     address[] claimants;
+
+    uint premiumAmount = 3 ether;  //customer pays as a premium for coverage. this is dynamic but static to start.
+    uint coverageAmount = 5 ether; //beneficiary is due to recieve in case delay. this is dynamic but static to start.
 
     event LogDepositMade(address accountAddress, uint amount);
     event LogClaimPosted(address beneficiary, uint amount, string reason);
@@ -23,28 +40,43 @@ contract LDelayBase is Ownable {
         _;
     }
 
-    function depositPremium() payable external returns (uint) {
+    function depositPremium() payable external returns (bool) {
         //deposit premium into pool for the expected coverage
+        //to begin premium is $3 in ETH and coverage limit is $5 in ETH. This will be represented in ETH to start (testnet)
+        //limit each customer to one deposit per instance (each hour) to limit inside info trading and exploits
 
-        uint coverageAmount = 5; //this is the amount that the beneficiary is due to recieve in the case of a delay. this is dynamic.
-
-        balances[msg.sender] = balances[msg.sender] + msg.value;
-        emit LogDepositMade(msg.sender, msg.value);
+        //require(_coverage = 0);
         
-        coverages[msg.sender] = coverages[msg.sender] + coverageAmount;
+        //customer deposits correct amount
+        require(msg.value > premiumAmount);
+        uint amountToSend = premiumAmount;
+        uint change = msg.value - amountToSend;
+        msg.sender.transfer(change); // return change to sender
+
+        Beneficiary(beneficiaryID, msg.sender);
+
+        balances[msg.sender] = premiumAmount;
+        emit LogDepositMade(msg.sender, premiumAmount);
+
+        issuePolicy(beneficiaryID);
+        beneficiaryID++;
+    }
+
+    function issuePolicy(uint beneficiaryID) internal returns (uint) {
+        policies[beneficiaryID] = Policy(beneficiaryID, premiumAmount, coverageAmount, 0);
+        coverages[msg.sender] = coverageAmount;
         totalCoverage += coverageAmount;
 
         return coverage();
     }
 
     function getTotalCoverage() public view returns (uint) {
-        //get balance of custody union pool
+        //get balance of LDelay pool
         return totalCoverage;
     }
  
     function postClaim(uint amount, string reason) external inPool {
         //send request to start a claim
-        //only someone already in the pool should be able to call this function
         //cannot make a claim for more than your limit coverage 
         require(amount <= coverages[msg.sender]);
 
