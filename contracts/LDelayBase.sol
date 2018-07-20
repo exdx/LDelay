@@ -3,14 +3,7 @@ pragma solidity ^0.4.24;
 import "./Ownable.sol";
 import "./SafeMath.sol" as SafeMath;
 
-/*
-This contract implements the main functions of the DCU: managing an insurance pool covering all
-assets of the participating custodians. The contract should not store all the custodian funds directly - instead the
-custodians hold their own customer funds via cold storage, HSMs and other secure offline methods. The CustodyUnion contract holds the collateral haircut
-that each custodian posts in order to participate in the pool. It then adminsters all the required insurance logic. 
-*/
-
-contract CustodyUnion is Ownable {
+contract LDelayBase is Ownable {
      	
     //using SafeMath for uint256; - Library import
 
@@ -30,9 +23,10 @@ contract CustodyUnion is Ownable {
         _;
     }
 
-    function depositCollateral(uint coverageAmount) payable external returns (uint) {
-        //deposit collateral into pool specifying the amount of coverage you are expecting
-        require(coverageAmount > 0);
+    function depositPremium() payable external returns (uint) {
+        //deposit premium into pool for the expected coverage
+
+        uint coverageAmount = 5; //this is the amount that the beneficiary is due to recieve in the case of a delay. this is dynamic.
 
         balances[msg.sender] = balances[msg.sender] + msg.value;
         emit LogDepositMade(msg.sender, msg.value);
@@ -62,7 +56,7 @@ contract CustodyUnion is Ownable {
     }
 
     function approveClaim(address beneficiary, uint _claimid, uint amount) internal onlyOwner {
-        //approve claim - only allowed for by DCU administrator
+        //approve claim - only allowed by pool administrator
         delete claimants[_claimid];
         beneficiary.transfer(amount); 
     }
@@ -76,11 +70,7 @@ contract CustodyUnion is Ownable {
     }
 
     function liquidate() private onlyOwner returns (bool) {
-        //returns all posted collateral to owners and closes pool
-    }
-
-    function payDividend(uint dividend) internal onlyOwner returns (bool) {
-        //return share of collateral to custodians in case of profits
+        //returns all posted premiums to owners and closes pool
     }
 
     function emergencyStop() private onlyOwner {
