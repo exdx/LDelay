@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
-import "./SafeMath.sol" as SafeMath;
+//import "./SafeMath.sol" as SafeMath;
 
 contract LDelayBase is Ownable {
      	
@@ -9,7 +9,7 @@ contract LDelayBase is Ownable {
 
     mapping (address => uint) private balances;
     mapping (address => uint) private coverages;
-    mapping (address => uint) private claims;
+    mapping (uint => uint) private claims;
     mapping (uint => Policy) policies;
 
     struct Beneficiary {
@@ -18,22 +18,24 @@ contract LDelayBase is Ownable {
     }
 
     struct Policy {
-        uint beneficiaryID;
+        uint policyID;
         uint premium;
         uint coverageLimit;
         uint coverageTimeLimit;
     }
 
     uint totalCoverage;
-    uint claimid;
     uint beneficiaryID;
-    address[] claimants;
+    uint[] claimants;
+
+    //contract state: Active (Train is running normally, customers can purchase insurance)
+    //or Inactive (Train is delayed, customers cannot purchase insurance)
 
     uint premiumAmount = 3 ether;  //customer pays as a premium for coverage. this is dynamic but static to start.
     uint coverageAmount = 5 ether; //beneficiary is due to recieve in case delay. this is dynamic but static to start.
 
     event LogDepositMade(address accountAddress, uint amount);
-    event LogClaimPosted(address beneficiary, uint amount, string reason);
+    event LogClaimPosted(uint claimID);
 
     modifier inPool() {
         require(coverages[msg.sender] > 0);
@@ -48,7 +50,7 @@ contract LDelayBase is Ownable {
         //require(_coverage = 0);
         
         //customer deposits correct amount
-        require(msg.value > premiumAmount);
+        require(msg.value >= premiumAmount);
         uint amountToSend = premiumAmount;
         uint change = msg.value - amountToSend;
         msg.sender.transfer(change); // return change to sender
@@ -60,14 +62,14 @@ contract LDelayBase is Ownable {
 
         issuePolicy(beneficiaryID);
         beneficiaryID++;
+
+        return true;
     }
 
-    function issuePolicy(uint beneficiaryID) internal returns (uint) {
-        policies[beneficiaryID] = Policy(beneficiaryID, premiumAmount, coverageAmount, 0);
+    function issuePolicy(uint _beneficiaryID) internal {
+        policies[_beneficiaryID] = Policy(_beneficiaryID, premiumAmount, coverageAmount, 0);
         coverages[msg.sender] = coverageAmount;
         totalCoverage += coverageAmount;
-
-        return coverage();
     }
 
     function getTotalCoverage() public view returns (uint) {
@@ -75,22 +77,21 @@ contract LDelayBase is Ownable {
         return totalCoverage;
     }
  
-    function postClaim(uint amount, string reason) external inPool {
+    function postClaim(uint _policyid) external inPool {
         //send request to start a claim
         //cannot make a claim for more than your limit coverage 
-        require(amount <= coverages[msg.sender]);
-
-        claimants.push(msg.sender);
-        claims[msg.sender] = claimid;
-        claimid++;
-
-        emit LogClaimPosted(msg.sender, amount, reason);
+        claimants.push(_policyid);
+        emit LogClaimPosted(_policyid);
     }
 
-    function approveClaim(address beneficiary, uint _claimid, uint amount) internal onlyOwner {
+    function approveClaim(address beneficiary, uint _claimid, uint amount) external onlyOwner {
         //approve claim - only allowed by pool administrator
         delete claimants[_claimid];
-        beneficiary.transfer(amount); 
+
+        coverages[beneficiary] -= amount;
+        totalCoverage -= amount;
+
+        beneficiary.transfer(amount);
     }
 
     function balance() public view returns (uint) {
