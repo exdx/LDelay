@@ -63,9 +63,9 @@ contract LDelayBase is Ownable {
         return true;
     }
 
-    function issuePolicy(uint _policyID) internal {
-        policies[_policyID] = Policy(_policyID, premiumAmount, coverageAmount, 0);
-        coverages[msg.sender] = coverageAmount;
+    function issuePolicy(uint _policyid) internal {
+        policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, 0);
+        coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage += coverageAmount;
     }
 
@@ -77,7 +77,7 @@ contract LDelayBase is Ownable {
         emit LogClaimPosted(_policyid);
     }
 
-    function approveClaim(uint _policyid) external onlyOwner {
+    function approveClaim(uint _policyid) external payable onlyOwner {
         //approve claim - only allowed by pool administrator
 
         coverages[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].coverageLimit;
