@@ -1,3 +1,7 @@
 .idea
 .code
-npm_modules
+.gitignore
+contracts/.placeholder
+test/.placeholder
+build
+node_modules
