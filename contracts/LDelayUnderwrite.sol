@@ -9,7 +9,7 @@ contract LDelayUnderwrite {
 
 
 
-    function underwrite() internal {
+    function underwrite() internal pure {
         //take in request and issue price for coverage
     }
 }

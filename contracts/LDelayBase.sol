@@ -26,17 +26,24 @@ contract LDelayBase is Ownable {
 
     uint totalCoverage;
     uint policyID;
+    uint256 nextPayeeIndex;
 
     //contract state: Active (Train is running normally, customers can purchase insurance)
     //or Inactive (Train is delayed, customers cannot purchase insurance)
 
-    string[] LTRAINSTATE = ["Active", "Inactive"];
+    string[2] LTRAINSTATES = ["Normal", "Delayed"];
+    string LTRAINSTATUS;
 
     uint premiumAmount = 3 ether;  //customer pays as a premium for coverage. this is dynamic but static to start.
     uint coverageAmount = 5 ether; //beneficiary is due to recieve in case delay. this is dynamic but static to start.
 
     event LogDepositMade(address accountAddress, uint amount);
     event LogClaimPosted(uint claimID);
+
+    // modifier isStatusNormal() {
+    //     require(keccak256(LTRAINSTATUS) == keccak256(LTRAINSTATES[0]));
+    //     _;
+    // }
 
     function depositPremium() payable external returns (bool) {
         //deposit premium into pool for the expected coverage
@@ -100,13 +107,25 @@ contract LDelayBase is Ownable {
         return coverages[msg.sender];
     }
 
-    function liquidate() private onlyOwner returns (bool) {
-        //returns all posted premiums to owners and closes pool
-    }
+    // function liquidate() private onlyOwner returns (bool) {
+    //     //returns all posted premiums to owners and closes pool
+    //     //watch for out of gas spam attack
+    //     uint256 i = nextPayeeIndex;
+    //     while (i < policyID && msg.gas > 200000) {
+    //         beneficiaries[i].beneficiaryAddress.transfer(policies[i].premium);
+    //         i++;
+    //     }
+    //     nextPayeeIndex = i;
 
-    function emergencyStop() private onlyOwner {
-        //stops all contract functions
-    }
+    // }
+
+    // function emergencyStop() private  onlyOwner returns (bool) {
+    //     //stops all contract functions
+    //     //use emergey stop library
+
+    //     bool isStopped = false;
+    //     return isStopped;
+    // }
 
     function () public {
         revert();
