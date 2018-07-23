@@ -85,7 +85,8 @@ contract LDelayBase is Ownable {
     }
 
     function approveClaim(uint _policyid) external payable onlyOwner {
-        //approve claim - only allowed by pool administrator
+        //approve claim - require that enough equity is left in the pool to cover claim
+        require(totalCoverage >= policies[_policyid].coverageLimit);
 
         coverages[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].coverageLimit;
         balances[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].premium;
