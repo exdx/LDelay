@@ -1,2 +1,2 @@
 # LDelay
-A dApp providing parametric insurance covering L train delays 
+A decentralized application providing parametric microinsurance covering L train delays
