@@ -8,6 +8,7 @@ import "./Oraclize.sol";
 contract LDelayOracle is usingOraclize {
     string public mtaFeedAPIresult;
 
+    event NewOraclizeQuery(string description);
     event LTrainStatusUpdate(string result);
 
     function __callback(bytes32 myid, string result) {
@@ -17,6 +18,7 @@ contract LDelayOracle is usingOraclize {
     }
 
     function getLTrainStatus() payable {
+        NewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
         oraclize_query("URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
     }
 }
