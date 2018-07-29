@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-//pay coverage to beneficiary here
+//pay coverage to beneficiary here to improve contract security
 
 import "./LDelayBase.sol";
 
