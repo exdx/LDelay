@@ -13,12 +13,12 @@ contract LDelayOracle is usingOraclize {
 
     function __callback(bytes32 myid, string result) {
         if (msg.sender != oraclize_cbAddress()) revert();
-        mtaFeedAPIresult = result;
         emit LTrainStatusUpdate(result);
+        mtaFeedAPIresult = result;
     }
 
     function getLTrainStatus() payable {
-        NewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
+        emit NewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
         oraclize_query("URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
     }
 }
