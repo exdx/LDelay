@@ -25,6 +25,7 @@ contract LDelayBase is Ownable {
         uint premium;
         uint coverageLimit;
         uint coverageTimeLimit;
+        string FinalStatus;
     }
 
     uint totalCoverage; 
@@ -58,9 +59,8 @@ contract LDelayBase is Ownable {
         _;
     }
 
-    modifier isStatusDelayed() {
-        (queryID, LTRAINSTATUS) = oracle.getLTrainInitialStatus();
-        require(StringUtils.equal(LTRAINSTATUS, LTRAINSTATES[1]), "Train status is not delayed: cannot payout claim");
+    modifier isPolicyStatusDelayed(uint _policyid) {
+        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot open claim");
         _;
     }
 
@@ -98,18 +98,22 @@ contract LDelayBase is Ownable {
       * @return coverageAmount The amount the beneficiary is insured for
      */
     function issuePolicy(uint _policyid, uint _coverageTimeLimit) private returns(uint) {
-        policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit);
+        policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage += coverageAmount;
+
+        /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
+          * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim modifier*/
+        (queryID, policies[_policyid].FinalStatus) = oracle.getLTrainFollowupStatus(_coverageTimeLimit);
 
         return coverageAmount;
     }
 
     /** @dev Approve claim for a given beneficiary: only after a train has been confirmed delayed during their time limit coverage
-      * @dev Claim gets posted and approved only if train state is "Delayed" at that point
+      * @dev Claim gets posted and approved only if train state is "Delayed" at that point by confirming the Final Status of that policy
       * @param _policyid The id of the policy that should be paid out
      */
-    function approveClaim(uint _policyid) private isStatusDelayed {
+    function approveClaim(uint _policyid) private isPolicyStatusDelayed(_policyid) {
         require(coverages[beneficiaries[_policyid].beneficiaryAddress] > 0, "beneficiary must have coverage");
         require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
 
