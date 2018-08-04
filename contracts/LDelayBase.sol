@@ -12,6 +12,7 @@ contract LDelayBase is Ownable {
 
     mapping (address => uint) private balances;
     mapping (address => uint) private coverages;
+    mapping (address => uint) private addressPolicyMap;
     mapping (uint => Policy) policies;
     mapping (uint => Beneficiary) beneficiaries;
 
@@ -60,7 +61,12 @@ contract LDelayBase is Ownable {
     }
 
     modifier isPolicyStatusDelayed(uint _policyid) {
-        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot open claim");
+        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
+        _;
+    }
+
+    modifier inPool() {
+        require(coverages[msg.sender] > 0, "Address not covered");
         _;
     }
 
@@ -84,6 +90,7 @@ contract LDelayBase is Ownable {
         msg.sender.transfer(change); // return change to sender
 
         beneficiaries[policyID] = Beneficiary(policyID, msg.sender);
+        addressPolicyMap[msg.sender] = policyID;
 
         balances[msg.sender] = premiumAmount;
         emit LogDepositMade(msg.sender, premiumAmount);
@@ -109,12 +116,14 @@ contract LDelayBase is Ownable {
         return coverageAmount;
     }
 
-    /** @dev Approve claim for a given beneficiary: only after a train has been confirmed delayed during their time limit coverage
-      * @dev Claim gets posted and approved only if train state is "Delayed" at that point by confirming the Final Status of that policy
-      * @param _policyid The id of the policy that should be paid out
+    /** @dev Approve claim for a given beneficiary: user calls this function to receive payout (if their policy reflects a delay)
+      * @dev Claim gets posted and approved only if train state is "Delayed" by confirming the Final Status of that policy
      */
-    function approveClaim(uint _policyid) private isPolicyStatusDelayed(_policyid) {
-        require(coverages[beneficiaries[_policyid].beneficiaryAddress] > 0, "beneficiary must have coverage");
+    function approveClaim() external inPool {
+        uint _policyid = addressPolicyMap[msg.sender];
+        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
+
+        require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
         require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
 
         coverages[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].coverageLimit;
