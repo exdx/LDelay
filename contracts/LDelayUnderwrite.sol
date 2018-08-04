@@ -1,9 +1,6 @@
 pragma solidity ^0.4.24;
 
-//oraclize API calls go in here
-
-import "./LDelayBase.sol";
-
+/** @title Determine costs of premium and coverage limits by converting from ether to USD */ 
 contract LDelayUnderwrite {
 
 
