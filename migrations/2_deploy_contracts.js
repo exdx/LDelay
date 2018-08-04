@@ -1,17 +1,16 @@
 var LDelayBase = artifacts.require("LDelayBase");
+var LDelayOracle = artifacts.require("LDelayOracle");
+var SafeMath = artifacts.require("libraries/SafeMath");
+var StringUtils = artifacts.require("libraries/StringUtils");
 
 module.exports = function(deployer) {
-  deployer.deploy(LDelayBase, {gas:6000000});
-};
-
-//support for libraries done below
-
-// const IterableMapping = artifacts.require('IterableMapping.sol');
-// const User = artifacts.require('User.sol');
-
-// module.exports = function (deployer) {
-//     deployer.deploy(IterableMapping).then(() => {
-//         deployer.deploy(User);
-//     });
-//     deployer.link(IterableMapping, User);
-// };
+  deployer.deploy(SafeMath).then(() => {
+    deployer.deploy(StringUtils)
+    });
+    deployer.link(SafeMath, LDelayBase).then(() => {
+        deployer.link(StringUtils, LDelayBase)
+    });
+    deployer.deploy(LDelayOracle).then(() => {
+        deployer.deploy(LDelayBase)
+    });
+}
