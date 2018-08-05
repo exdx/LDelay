@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./Oraclize.sol";
-import "./LDelayBaseInterface.sol";
+//import "./LDelayBaseInterface.sol";
 
 /** @title Use oraclize to hit custom AWS endpoint to get train status */ 
 contract LDelayOracle is usingOraclize {
@@ -39,10 +39,10 @@ contract LDelayOracle is usingOraclize {
     }
 
 /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 
-  * @dev Can only be called once 
+  * @dev Can only be called once to set the Base address
   */
-    function setBaseContractAddress() external {
+    function setBaseContractAddress(address _baseAddress) external {
         require(LDelayBaseAddress == address(0), "Base Address has already been set");
-        LDelayBaseAddress = msg.sender;
+        LDelayBaseAddress = _baseAddress;
     }
 }

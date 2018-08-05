@@ -1,13 +1,12 @@
 pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
-import "./LDelayOracle.sol";
 import "./LDelayBaseInterface.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 import { StringUtils } from "../libraries/StringUtils.sol";
 
 /** @title Provides base functionality for insurance functions: deposit/issue policy/withdraw */
-contract LDelayBase is Ownable, LDelayBaseInterface {
+contract LDelayBase is LDelayBaseInterface, Ownable {
      	
     using SafeMath for uint;
 
@@ -33,6 +32,8 @@ contract LDelayBase is Ownable, LDelayBaseInterface {
     uint totalCoverage; 
     uint policyID;
 
+    address oracleAddress;
+
     /** @dev L Train states 
       * Normal (Train is running normally)
       * Delayed (Train is delayed)
@@ -48,8 +49,6 @@ contract LDelayBase is Ownable, LDelayBaseInterface {
     */
     uint premiumAmount = 10 finney;
     uint coverageAmount = 20 finney;
-
-    LDelayOracle oracle;
 
     event LogDepositMade(address accountAddress, uint amount);
     event LogPayoutMade(address claimant, uint amount);
@@ -67,11 +66,6 @@ contract LDelayBase is Ownable, LDelayBaseInterface {
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
         _;
-    }
-
-    /** @dev Constructor - determine oracle contract address */
-    constructor(address _t) internal {
-        oracle = LDelayOracle(_t);
     }
 
     /** @dev Deposit premium into contract for the expected coverage. Customer must be "new" and deposit more than minimum premium amount. 
@@ -94,25 +88,26 @@ contract LDelayBase is Ownable, LDelayBaseInterface {
 
         balances[msg.sender] = premiumAmount;
         emit LogDepositMade(msg.sender, premiumAmount);
-
-        issuePolicy(policyID, _coverageTimeLimit);
-        policyID++;
+        
     }
 
     /** @dev Issue policy for a given beneficiary
+      * @dev Calls the callOracle function to issue a callback as to the final train state
+      * @param _oracleAddress The address of the oracle contract to query
       * @param _policyid The policy id assigned to the beneficiary when they sign up
       * @param _coverageTimeLimit The time in the future at which the customer is hedging against the train being delayed
       * @return coverageAmount The amount the beneficiary is insured for
      */
-    function issuePolicy(uint _policyid, uint _coverageTimeLimit) private returns (uint) {
+    function issuePolicy(address _oracleAddress, uint _policyid, uint _coverageTimeLimit) external returns (uint) {
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage += coverageAmount;
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
           * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
-        oracle.getLTrainStatus(_coverageTimeLimit, _policyid);
+        callOracle(_oracleAddress, _coverageTimeLimit, _policyid);
 
+        policyID++;
         return coverageAmount;
     }
 
@@ -142,10 +137,15 @@ contract LDelayBase is Ownable, LDelayBaseInterface {
     /** @dev Set the LTRAINSTATUS variable: used in conjunction with the oraclize contract 
       * @dev Also sets the FinalStatus variable for the relevant beneficiary */
     function setLTRAINSTATUS(string _status, uint _externalpolicyID) public {
-        if (msg.sender != address(oracle)) revert();
+        //if (msg.sender != address(oracle)) revert();
         LTRAINSTATUS = _status;
-
         setPolicyStatus(_externalpolicyID, _status);
+    }
+
+    /** @dev Calls the oracle contract with the policy specific arguments */
+    function callOracle(address _oracleAddress, uint _timelimit, uint _policyID) internal {
+        oracleAddress = _oracleAddress;
+        oracleAddress.call(bytes4(keccak256("getLTrainStatus(uint, uint)")), _timelimit, _policyID);
     }
 
     function setPolicyStatus(uint _policyID, string _policyState) internal {

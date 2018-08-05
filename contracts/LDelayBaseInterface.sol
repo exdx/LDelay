@@ -3,9 +3,10 @@ pragma solidity ^0.4.24;
 /**@title Abstract LDelayBase contract*/
 contract LDelayBaseInterface {
     function depositPremium(uint) external payable;
-    function issuePolicy(uint, uint) private returns (uint);
+    function issuePolicy(address, uint, uint) external returns (uint);
     function approveClaim() external;
     function setLTRAINSTATUS(string, uint) public;
+    function callOracle(address, uint, uint) internal;
     function setPolicyStatus(uint, string) internal;
     function getTotalCoverage() public view returns (uint); 
     function getBalance() public view returns (uint); 
