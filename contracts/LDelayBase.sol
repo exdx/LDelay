@@ -33,8 +33,8 @@ contract LDelayBase is Ownable {
     uint policyID;
 
     /** @dev L Train states 
-      * Normal (Train is running normally, customers can purchase insurance)
-      * Delayed (Train is delayed, customers cannot purchase insurance)
+      * Normal (Train is running normally)
+      * Delayed (Train is delayed)
       * Unknown (MTA API is not responding)
       * The contract state is determined by the response of the oracle
     */
@@ -54,7 +54,7 @@ contract LDelayBase is Ownable {
     event LogPayoutMade(address claimant, uint amount);
 
     modifier isStatusNormal() {
-        require(StringUtils.equal(LTRAINSTATUS, LTRAINSTATES[0]), "Train status is not normal: cannot buy coverage");
+        require(StringUtils.equal(LTRAINSTATUS, LTRAINSTATES[0]), "Train status is not normal");
         _;
     }
 
@@ -75,14 +75,15 @@ contract LDelayBase is Ownable {
 
     /** @dev Deposit premium into contract for the expected coverage. Customer must be "new" and deposit more than minimum premium amount. 
       * @dev To begin premium is .01 in ETH and coverage amount is 0.02 in ETH. 
-      * @dev Requires LTRAINSTATE to be Normal (see isStatusNormal modifier)
       * @param coverageTimeLimit The time in the future the customer wants to be covered against delay. At this time the oracle queries again to determine train status. 
       * This parameter will be provided by the user in minutes and then converted to block numbers in the future
      */
-    function depositPremium(uint _coverageTimeLimit) external payable isStatusNormal {
+    function depositPremium(uint _coverageTimeLimit) external payable {
         require(coverages[msg.sender] == 0, "customer balances must be zero"); 
         require(msg.value >= premiumAmount, "customer must deposit >= premium");
-        require(_coverageTimeLimit <= 60, "coverage must be for less than one hour in minutes");
+        require(_coverageTimeLimit >= 10, "coverage must be for at least 10 minutes");
+        require(_coverageTimeLimit <= 60, "coverage must be for at most 60 minutes");
+
         uint amountToSend = premiumAmount;
         uint change = msg.value - amountToSend;
         msg.sender.transfer(change); // return change to sender
@@ -119,6 +120,11 @@ contract LDelayBase is Ownable {
      */
     function approveClaim() external inPool {
         uint _policyid = addressPolicyMap[msg.sender];
+        int _statuscheck = StringUtils.compare(policies[_policyid].FinalStatus, "0"); 
+
+        //Length of Final Status should be greater than "O" if the oracle query returned by this point
+        require(_statuscheck > 0, "Claiming too soon - try again later");
+        //Final Status should be equal to "Delayed" for the claim to be accepted
         require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
 
         require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
