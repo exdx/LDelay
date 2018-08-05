@@ -4,13 +4,16 @@ var SafeMath = artifacts.require("libraries/SafeMath");
 var StringUtils = artifacts.require("libraries/StringUtils");
 
 module.exports = function(deployer) {
-  deployer.deploy(SafeMath).then(() => {
-    deployer.deploy(StringUtils)
-    });
-    deployer.link(SafeMath, LDelayBase).then(() => {
+  deployer.deploy(SafeMath);
+  deployer.deploy(StringUtils);
+
+  deployer.link(SafeMath, LDelayBase).then(() => {
         deployer.link(StringUtils, LDelayBase)
     });
-    deployer.deploy(LDelayOracle).then(() => {
-        deployer.deploy(LDelayBase)
+    deployer.deploy(LDelayOracle).then(function() {
+        return deployer.deploy(LDelayBase, LDelayOracle.address);
     });
-}
+        // .then(
+        //     LDelayOracle.call(setBaseContractAddress({from:LDelayBase.address}))
+        // )
+};

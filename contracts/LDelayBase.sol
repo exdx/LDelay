@@ -2,11 +2,12 @@ pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
 import "./LDelayOracle.sol";
+import "./LDelayBaseInterface.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 import { StringUtils } from "../libraries/StringUtils.sol";
 
 /** @title Provides base functionality for insurance functions: deposit/issue policy/withdraw */
-contract LDelayBase is Ownable {
+contract LDelayBase is Ownable, LDelayBaseInterface {
      	
     using SafeMath for uint;
 
@@ -69,7 +70,7 @@ contract LDelayBase is Ownable {
     }
 
     /** @dev Constructor - determine oracle contract address */
-    constructor(address _t) {
+    constructor(address _t) internal {
         oracle = LDelayOracle(_t);
     }
 
@@ -103,7 +104,7 @@ contract LDelayBase is Ownable {
       * @param _coverageTimeLimit The time in the future at which the customer is hedging against the train being delayed
       * @return coverageAmount The amount the beneficiary is insured for
      */
-    function issuePolicy(uint _policyid, uint _coverageTimeLimit) private returns(uint) {
+    function issuePolicy(uint _policyid, uint _coverageTimeLimit) private returns (uint) {
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage += coverageAmount;
