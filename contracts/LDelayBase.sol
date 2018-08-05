@@ -8,7 +8,7 @@ import { StringUtils } from "../libraries/StringUtils.sol";
 /** @title Provides base functionality for insurance functions: deposit/issue policy/withdraw */
 contract LDelayBase is Ownable {
      	
-    using SafeMath for uint256;
+    using SafeMath for uint;
 
     mapping (address => uint) private balances;
     mapping (address => uint) private coverages;
@@ -39,8 +39,7 @@ contract LDelayBase is Ownable {
       * The contract state is determined by the response of the oracle
     */
     string[3] LTRAINSTATES = ["Normal", "Delayed", "Unknown"];
-    bytes32 queryID;
-    string LTRAINSTATUS;
+    string public LTRAINSTATUS;
 
     /** @dev Premium and Coverages
       * @param premiumAmount Amount customer pays for coverage. This is ideally dynamic but static to start.
@@ -55,7 +54,6 @@ contract LDelayBase is Ownable {
     event LogPayoutMade(address claimant, uint amount);
 
     modifier isStatusNormal() {
-        (queryID, LTRAINSTATUS) = oracle.getLTrainInitialStatus();
         require(StringUtils.equal(LTRAINSTATUS, LTRAINSTATES[0]), "Train status is not normal: cannot buy coverage");
         _;
     }
@@ -84,7 +82,7 @@ contract LDelayBase is Ownable {
     function depositPremium(uint _coverageTimeLimit) external payable isStatusNormal {
         require(coverages[msg.sender] == 0, "customer balances must be zero"); 
         require(msg.value >= premiumAmount, "customer must deposit >= premium");
-        require(_coverageTimeLimit <= 60, "coverage must be for less than one hour");
+        require(_coverageTimeLimit <= 60, "coverage must be for less than one hour in minutes");
         uint amountToSend = premiumAmount;
         uint change = msg.value - amountToSend;
         msg.sender.transfer(change); // return change to sender
@@ -111,7 +109,7 @@ contract LDelayBase is Ownable {
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
           * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim modifier*/
-        (queryID, policies[_policyid].FinalStatus) = oracle.getLTrainFollowupStatus(_coverageTimeLimit);
+        oracle.getLTrainStatus(_coverageTimeLimit, _policyid);
 
         return coverageAmount;
     }
@@ -134,16 +132,29 @@ contract LDelayBase is Ownable {
         beneficiaries[_policyid].beneficiaryAddress.transfer(policies[_policyid].coverageLimit);
     }
 
+    /** @dev Set the LTRAINSTATUS variable: used in conjunction with the oraclize contract 
+      * @dev Also sets the FinalStatus variable for the relevant beneficiary */
+    function setLTRAINSTATUS(string _status, uint _externalpolicyID) public {
+        if (msg.sender != address(oracle)) revert();
+        LTRAINSTATUS = _status;
+
+        setPolicyStatus(_externalpolicyID, _status);
+    }
+
+    function setPolicyStatus(uint _policyID, string _policyState) internal {
+        policies[_policyID].FinalStatus = _policyState;
+    }
+
     /** @dev Returns total coverage liabilities by LDelay risk pool at that moment in time */
     function getTotalCoverage() public view returns (uint) {
         return totalCoverage;
     }
 
-    function balance() public view returns (uint) {
+    function getBalance() public view returns (uint) {
         return balances[msg.sender];
     }
 
-    function coverage() public view returns (uint) {
+    function getCoverage() public view returns (uint) {
         return coverages[msg.sender];
     }
 
