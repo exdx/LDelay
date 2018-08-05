@@ -75,7 +75,7 @@ contract LDelayBase is Ownable {
 
     /** @dev Deposit premium into contract for the expected coverage. Customer must be "new" and deposit more than minimum premium amount. 
       * @dev To begin premium is .01 in ETH and coverage amount is 0.02 in ETH. 
-      * @param coverageTimeLimit The time in the future the customer wants to be covered against delay. At this time the oracle queries again to determine train status. 
+      * @param _coverageTimeLimit The time in the future the customer wants to be covered against delay. At this time the oracle queries again to determine train status. 
       * This parameter will be provided by the user in minutes and then converted to block numbers in the future
      */
     function depositPremium(uint _coverageTimeLimit) external payable {
@@ -109,7 +109,7 @@ contract LDelayBase is Ownable {
         totalCoverage += coverageAmount;
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
-          * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim modifier*/
+          * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
         oracle.getLTrainStatus(_coverageTimeLimit, _policyid);
 
         return coverageAmount;
@@ -120,15 +120,15 @@ contract LDelayBase is Ownable {
      */
     function approveClaim() external inPool {
         uint _policyid = addressPolicyMap[msg.sender];
+        require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
+        require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
+
         int _statuscheck = StringUtils.compare(policies[_policyid].FinalStatus, "0"); 
 
         //Length of Final Status should be greater than "O" if the oracle query returned by this point
         require(_statuscheck > 0, "Claiming too soon - try again later");
         //Final Status should be equal to "Delayed" for the claim to be accepted
         require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
-
-        require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
-        require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
 
         coverages[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].coverageLimit;
         balances[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].premium;

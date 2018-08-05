@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-/**@title Abstract LDelayBase contract, used to allow Oracle contract to call set function since Oracle is deployed first*/
+/**@title Abstract LDelayBase contract*/
 contract LDelayBaseInterface {
     function depositPremium(uint) external payable;
     function issuePolicy(uint, uint) private;
