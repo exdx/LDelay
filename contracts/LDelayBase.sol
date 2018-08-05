@@ -81,7 +81,7 @@ contract LDelayBase is Ownable {
     function depositPremium(uint _coverageTimeLimit) external payable {
         require(coverages[msg.sender] == 0, "customer balances must be zero"); 
         require(msg.value >= premiumAmount, "customer must deposit >= premium");
-        require(_coverageTimeLimit >= 10, "coverage must be for at least 10 minutes");
+        require(_coverageTimeLimit >= 5, "coverage must be for at least 5 minutes");
         require(_coverageTimeLimit <= 60, "coverage must be for at most 60 minutes");
 
         uint amountToSend = premiumAmount;

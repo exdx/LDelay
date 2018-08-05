@@ -2,15 +2,23 @@ pragma solidity ^0.4.24;
 
 import "./Oraclize.sol";
 import "./LDelayBaseInterface.sol";
+import "./LDelayBase.sol";
 
 /** @title Use oraclize to hit custom AWS endpoint to get train status */ 
 contract LDelayOracle is usingOraclize {
     string public mtaFeedAPIresult;
     uint externalPolicyID;
-    address baseAddress;
+
+    LDelayBase base;
 
     event NewOraclizeQuery(string description);
     event LTrainStatusUpdate(string result);
+
+    /** @dev Constructor - determine base contract address */
+    constructor(address _t) {
+        base = LDelayBase(_t);
+    }
+
 
     /** @dev Holds result of oraclize query in mtaFeedAPIresult string
       * @return Three possibilities: "Normal", "Delayed", or "Unknown"
@@ -20,7 +28,7 @@ contract LDelayOracle is usingOraclize {
         emit LTrainStatusUpdate(result);
         mtaFeedAPIresult = result;
 
-        setBaseTrainStatus(baseAddress, result);
+        setBaseTrainStatus(result, externalPolicyID);
     }
 
     /** @dev Returns string of train status after querying MTA GTFS feed and deserializing result in a lambda function
@@ -30,18 +38,13 @@ contract LDelayOracle is usingOraclize {
         externalPolicyID = _externalPolicyID;
         uint delaySeconds = _futureTime * 60 seconds;
 
-        if (delaySeconds > 0) {
-            emit NewOraclizeQuery("Oraclize callback query was sent, standing by for the answer..");
-            oraclize_query(delaySeconds, "URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
-        } else {
-            emit NewOraclizeQuery("Oraclize query was sent, standing by for the answer..");
-            oraclize_query("URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
-        }
+        emit NewOraclizeQuery("Oraclize callback query was sent, standing by for the answer..");
+        oraclize_query(delaySeconds, "URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
     }
 
 /** @dev Calls setter function in base contract to update train state */
-    function setBaseTrainStatus(address _baseAddress, string result) internal {
-        LDelayBaseInterface ldelaybase = LDelayBaseInterface(_baseAddress);
-        ldelaybase.setLTRAINSTATUS(result, externalPolicyID);
+    function setBaseTrainStatus(string result, uint _policyID) internal {
+        LDelayBase ldelaybase = LDelayBase(address(base));
+        ldelaybase.setLTRAINSTATUS(result, _policyID);
     }
 }

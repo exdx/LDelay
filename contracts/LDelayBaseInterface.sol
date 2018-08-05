@@ -5,7 +5,7 @@ contract LDelayBaseInterface {
     function depositPremium(uint) external payable;
     function issuePolicy(uint, uint) private;
     function approveClaim() external;
-    function setLTRAINSTATUS(string) public;
+    function setLTRAINSTATUS(string, uint) public;
     function setPolicyStatus(uint, string) internal;
     function getTotalCoverage() public view returns (uint); 
     function getBalance() public view returns (uint); 
