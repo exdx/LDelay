@@ -25,7 +25,7 @@ contract LDelayOracle is usingOraclize {
     /** @dev Returns string of train status after querying MTA GTFS feed and deserializing result in a lambda function
       * @dev Allows to pass in delay variable in case of callback */
     function getLTrainStatus(uint _futureTime, uint _externalPolicyID) external payable {
-       // if (msg.sender != address(baseInterface)) revert();
+        if (msg.sender != LDelayBaseAddress) revert();
         externalPolicyID = _externalPolicyID;
         uint delaySeconds = _futureTime * 60;
 
@@ -44,5 +44,9 @@ contract LDelayOracle is usingOraclize {
     function setBaseContractAddress(address _baseAddress) external {
         require(LDelayBaseAddress == address(0), "Base Address has already been set");
         LDelayBaseAddress = _baseAddress;
+    }
+
+    function () public {
+        revert();
     }
 }
