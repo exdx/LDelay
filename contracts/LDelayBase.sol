@@ -102,7 +102,6 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
 
     /** @dev Issue policy for a given beneficiary
       * @dev Calls the callOracle function to issue a callback as to the final train state
-      * @param _oracleAddress The address of the oracle contract to query
       * @param _policyid The policy id assigned to the beneficiary when they sign up
       * @param _coverageTimeLimit The time in the future at which the customer is hedging against the train being delayed
       * @return coverageAmount The amount the beneficiary is insured for

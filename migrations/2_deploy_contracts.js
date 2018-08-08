@@ -11,6 +11,6 @@ module.exports = function(deployer) {
         deployer.link(StringUtils, LDelayBase)
     });
     deployer.deploy(LDelayOracle).then(function() {
-        return deployer.deploy(LDelayBase);
+        return deployer.deploy(LDelayBase, LDelayOracle.address);
     });
 };
