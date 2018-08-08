@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./Ownable.sol";
 import "./LDelayBaseInterface.sol";
+import "./LDelayOracleInterface.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 import { StringUtils } from "../libraries/StringUtils.sol";
 
@@ -32,7 +33,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     uint totalCoverage; 
     uint policyID;
 
-    address oracleAddress;
+    LDelayOracleInterface oracle;
 
     /** @dev L Train states 
       * Normal (Train is running normally)
@@ -68,6 +69,14 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
         _;
     }
 
+    /** @dev Constructor - determine oracle contract address 
+      * @dev The address of the oracle is passed in at deployment
+      * @dev Calls setBaseContract in oracle contract with this address */
+    constructor(address _t) public {
+        oracle = LDelayOracleInterface(_t);
+        oracle.setBaseContractAddress(this);
+    }
+
     /** @dev Deposit premium into contract for the expected coverage. Customer must be "new" and deposit more than minimum premium amount. 
       * @dev To begin premium is .01 in ETH and coverage amount is 0.02 in ETH. 
       * @param _coverageTimeLimit The time in the future the customer wants to be covered against delay. At this time the oracle queries again to determine train status. 
@@ -98,14 +107,14 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
       * @param _coverageTimeLimit The time in the future at which the customer is hedging against the train being delayed
       * @return coverageAmount The amount the beneficiary is insured for
      */
-    function issuePolicy(address _oracleAddress, uint _policyid, uint _coverageTimeLimit) external returns (uint) {
+    function issuePolicy(uint _policyid, uint _coverageTimeLimit) external returns (uint) {
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage += coverageAmount;
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
           * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
-        callOracle(_oracleAddress, _coverageTimeLimit, _policyid);
+        callOracle(_coverageTimeLimit, _policyid);
 
         policyID++;
         return coverageAmount;
@@ -143,9 +152,8 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     }
 
     /** @dev Calls the oracle contract with the policy specific arguments */
-    function callOracle(address _oracleAddress, uint _timelimit, uint _policyID) internal {
-        oracleAddress = _oracleAddress;
-        oracleAddress.call(bytes4(keccak256("getLTrainStatus(uint, uint)")), _timelimit, _policyID);
+    function callOracle(uint _timelimit, uint _policyID) internal {
+        oracle.getLTrainStatus(_timelimit, _policyID);
     }
 
     function setPolicyStatus(uint _policyID, string _policyState) internal {
