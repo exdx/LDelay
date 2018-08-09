@@ -27,6 +27,7 @@ The end result in either case is the customer is given an opportunity to efficie
 * Seperate payout/claims into separate contract
 * Variable premiums/limits
 * Deanonymization to prevent adverse selection
+* Only allow deposits when train status is normal (requiring additional oracle queries)
 
 
 

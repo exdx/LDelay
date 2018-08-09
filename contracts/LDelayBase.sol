@@ -54,16 +54,6 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     event LogDepositMade(address accountAddress, uint amount);
     event LogPayoutMade(address claimant, uint amount);
 
-    modifier isStatusNormal() {
-        require(StringUtils.equal(LTRAINSTATUS, LTRAINSTATES[0]), "Train status is not normal");
-        _;
-    }
-
-    modifier isPolicyStatusDelayed(uint _policyid) {
-        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
-        _;
-    }
-
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
         _;
@@ -109,7 +99,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     function issuePolicy(uint _policyid, uint _coverageTimeLimit) external returns (uint) {
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
-        totalCoverage += coverageAmount;
+        totalCoverage.add(coverageAmount);
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
           * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
@@ -134,9 +124,10 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
         //Final Status should be equal to "Delayed" for the claim to be accepted
         require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
 
-        coverages[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].coverageLimit;
-        balances[beneficiaries[_policyid].beneficiaryAddress] -= policies[_policyid].premium;
-        totalCoverage -= policies[_policyid].coverageLimit;
+    /** @dev Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage*/
+        coverages[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].coverageLimit);
+        balances[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].premium);
+        totalCoverage.sub(policies[_policyid].coverageLimit);
 
         emit LogPayoutMade(beneficiaries[_policyid].beneficiaryAddress, policies[_policyid].coverageLimit); 
         beneficiaries[_policyid].beneficiaryAddress.transfer(policies[_policyid].coverageLimit);
@@ -155,6 +146,8 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
         oracle.getLTrainStatus(_timelimit, _policyID);
     }
 
+    /** @dev Set final policy status for policyholder 
+        @dev FinalStatus is used in approveClaim to determine if policyholder is eligible for a payout */
     function setPolicyStatus(uint _policyID, string _policyState) internal {
         policies[_policyID].FinalStatus = _policyState;
     }
