@@ -12,8 +12,11 @@ class App extends Component {
     super(props)
 
     this.state = {
-      storageValue: 0,
-      web3: null
+      web3: null,
+      contract: null,
+      account: null,
+      userDeposit: null,
+      userCoverage: null
     }
   }
 
@@ -36,35 +39,33 @@ class App extends Component {
   }
 
   instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
 
     const contract = require('truffle-contract')
-    const LDelayBase = contract(LDelayBase)
-    LDelayBase.setProvider(this.state.web3.currentProvider)
+    const ldelayContract = contract(LDelayBase)
+    ldelayContract.setProvider(this.state.web3.currentProvider)
 
     // Declaring this for later so we can chain functions on LDelayBase.
     var LDelayBaseInstance
 
     // Get accounts.
     this.state.web3.eth.getAccounts((error, accounts) => {
-      LDelayBase.deployed() /*then((instance) => {
-        LDelayBaseInstance = instance
-
-        // Stores a given value, 5 by default.
-        return LDelayBaseInstance.set(5, {from: accounts[0]})
-      }).then((result) => {
-        // Get the value from the contract to prove it worked.
-        return LDelayBaseInstance.get.call(accounts[0])
-      }).then((result) => {
-        // Update state with the result.
-        return this.setState({ storageValue: result.c[0] })
-      }) */
+        ldelayContract.deployed().then((instance) => {
+            LDelayBaseInstance = instance
+            //Transaction sending to deposit premium function 
+            return LDelayBaseInstance.depositPremium(this.state.web3.eth.toWei(50, "finney"), {from: accounts[0]})
+        }).then((result) => {
+            //Call getBalance function to return coverage
+            return LDelayBaseInstance.getBalance.call(accounts[0])
+        }).then((result) => {
+            //Update state with the result
+            return this.setState({ userDeposit: result.c[0]})
+        })
     }) 
+  }
+
+  handleClick(event){
+      const contract = this.state.contract
+      const account = this.state.account
   }
 
   render() {
@@ -80,7 +81,8 @@ class App extends Component {
               <h1>LDelay: Decentralized Parametric Microinsurance</h1>
               <p>Buy insurance against L train delays today!</p>
               <h2>Purchase</h2>
-              <p>The stored value is: {this.state.storageValue}</p>
+              <p>Your premium was: {this.state.userDeposit}</p>
+              <button onClick={this.handleClick.bind(this)}>Deposit Premium</button>
             </div>
           </div>
         </main>
