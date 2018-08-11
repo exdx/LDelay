@@ -23,6 +23,12 @@ The end result in either case is the customer is given an opportunity to efficie
 * Vagrant running Ubuntu 16.04 LTS
 * Truffle
 
+# Getting Started
+![Alt Text](https://media.giphy.com/media/JiuX6CeCM0us0/giphy.gif)
+
+*Don't worry, this dApp is easy to use!*
+
+
 # Improvements
 * Seperate payout/claims into separate contract
 * Variable premiums/limits
