@@ -103,7 +103,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
 
         /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
           * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
-        callOracle(_coverageTimeLimit, _policyid);
+        callOraclefromBase(_coverageTimeLimit, _policyid);
 
         policyID++;
         return coverageAmount;
@@ -142,7 +142,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     }
 
     /** @dev Calls the oracle contract with the policy specific arguments */
-    function callOracle(uint _timelimit, uint _policyID) internal {
+    function callOraclefromBase(uint _timelimit, uint _policyID) internal {
         oracle.getLTrainStatus(_timelimit, _policyID);
     }
 
