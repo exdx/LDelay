@@ -18,10 +18,8 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
       * @return Three possibilities: "Normal", "Delayed", or "Unknown"
     */
 
-    /** @dev Constructor holds OAR Resolver used by ethereum-bridge to enable oraclize functionality on local blockchain */
-    constructor() public payable {
-        //OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
-    }
+    /** @dev Constructor is payable to allow ether in be sent on migration to pay for oraclize calls  */
+    constructor() public payable {}
 
     function __callback(bytes32 myid, string result) public {
         if (msg.sender != oraclize_cbAddress()) revert();

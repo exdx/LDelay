@@ -10,10 +10,12 @@ import { StringUtils } from "../libraries/StringUtils.sol";
 contract LDelayBase is LDelayBaseInterface, Ownable {
      	
     using SafeMath for uint;
+    using StringUtils for string;
 
     mapping (address => uint) private balances;
     mapping (address => uint) private coverages;
     mapping (address => uint) private addressPolicyMap;
+    mapping (address => uint) private addressTimeLimitMap;
     mapping (uint => Policy) policies;
     mapping (uint => Beneficiary) beneficiaries;
 
@@ -51,11 +53,18 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     uint premiumAmount = 10 finney;
     uint coverageAmount = 20 finney;
 
-    event LogDepositMade(address accountAddress, uint amount);
+    event LogDepositMade(address accountAddress, uint amount, uint policyID);
     event LogPayoutMade(address claimant, uint amount);
+    event LogPolicyMade(address accountAddress, uint amount, uint policyID);
+    event LogOracleQueryMade(uint policyID);
 
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
+        _;
+    }
+
+    modifier notInPool() {
+        require(coverages[msg.sender] == 0, "Policy already issued");
         _;
     }
 
@@ -84,45 +93,60 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
 
         beneficiaries[policyID] = Beneficiary(policyID, msg.sender);
         addressPolicyMap[msg.sender] = policyID;
+        addressTimeLimitMap[msg.sender] = _coverageTimeLimit;
 
         balances[msg.sender] = premiumAmount;
-        emit LogDepositMade(msg.sender, premiumAmount);
-        
+        emit LogDepositMade(msg.sender, premiumAmount, policyID);
     }
 
     /** @dev Issue policy for a given beneficiary
-      * @dev Calls the callOracle function to issue a callback as to the final train state
-      * @param _policyid The policy id assigned to the beneficiary when they sign up
-      * @param _coverageTimeLimit The time in the future at which the customer is hedging against the train being delayed
-      * @return coverageAmount The amount the beneficiary is insured for
+      * @dev Calls the callOraclefromBase function to issue a callback as to the final train state
+      * @dev Must be protected against reentrancy attacks (via modifier)
      */
-    function issuePolicy(uint _policyid, uint _coverageTimeLimit) external returns (uint) {
+    function issuePolicy() external notInPool {
+        //Note: if the customer purchases again with the same address the mappings will be overwritten with the latest (OK)
+        uint _policyid = addressPolicyMap[msg.sender]; 
+        uint _coverageTimeLimit = addressTimeLimitMap[msg.sender];
+
+        require(_coverageTimeLimit >= 5, "Please deposit premium before calling this function!");
+
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
+        emit LogPolicyMade(msg.sender, coverageAmount, _policyid);
+
         coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
         totalCoverage.add(coverageAmount);
-
-        /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
-          * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function*/
-        callOraclefromBase(_coverageTimeLimit, _policyid);
-
         policyID++;
-        return coverageAmount;
+    }
+
+    /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
+      * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function
+      * @dev This is an expensive function call since it requires the gas to pay the oracle fee 
+    */
+    function callOraclefromBase() external {
+        uint _policyid = addressPolicyMap[msg.sender];
+        uint _coverageTimeLimit = addressTimeLimitMap[msg.sender];
+
+        require(_coverageTimeLimit >= 5, "Please deposit premium before calling this function!");
+        if (!policies[_policyid].FinalStatus.equal("0")) revert(); //Policy status must be unknown to call oracle
+
+        emit LogOracleQueryMade(_policyid);
+        oracle.getLTrainStatus(_coverageTimeLimit, _policyid);
     }
 
     /** @dev Approve claim for a given beneficiary: user calls this function to receive payout (if their policy reflects a delay)
       * @dev Claim gets posted and approved only if train state is "Delayed" by confirming the Final Status of that policy
-     */
+    */
     function approveClaim() external inPool {
         uint _policyid = addressPolicyMap[msg.sender];
         require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
         require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
 
-        int _statuscheck = StringUtils.compare(policies[_policyid].FinalStatus, "0"); 
+        int _statuscheck = policies[_policyid].FinalStatus.compare("0"); 
 
         //Length of Final Status should be greater than "O" if the oracle query returned by this point
         require(_statuscheck > 0, "Claiming too soon - try again later");
         //Final Status should be equal to "Delayed" for the claim to be accepted
-        require(StringUtils.equal(policies[_policyid].FinalStatus, LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
+        require(policies[_policyid].FinalStatus.equal(LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
 
     /** @dev Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage*/
         coverages[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].coverageLimit);
@@ -136,15 +160,12 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     /** @dev Set the LTRAINSTATUS variable: used in conjunction with the oraclize contract 
       * @dev Also sets the FinalStatus variable for the relevant beneficiary */
     function setLTRAINSTATUS(string _status, uint _externalpolicyID) public {
-        //if (msg.sender != address(oracle)) revert();
+        if (msg.sender != address(oracle)) revert();
         LTRAINSTATUS = _status;
         setPolicyStatus(_externalpolicyID, _status);
     }
 
-    /** @dev Calls the oracle contract with the policy specific arguments */
-    function callOraclefromBase(uint _timelimit, uint _policyID) internal {
-        oracle.getLTrainStatus(_timelimit, _policyID);
-    }
+
 
     /** @dev Set final policy status for policyholder 
         @dev FinalStatus is used in approveClaim to determine if policyholder is eligible for a payout */
