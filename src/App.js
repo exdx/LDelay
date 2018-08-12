@@ -51,21 +51,21 @@ class App extends Component {
     this.state.web3.eth.getAccounts((error, accounts) => {
         ldelayContract.deployed().then((instance) => {
             LDelayBaseInstance = instance
-            //Transaction sending to deposit premium function 
-            return LDelayBaseInstance.depositPremium(this.state.web3.eth.toWei(50, "finney"), {from: accounts[0]})
-        }).then((result) => {
-            //Call getBalance function to return coverage
-            return LDelayBaseInstance.getBalance.call(accounts[0])
-        }).then((result) => {
-            //Update state with the result
-            return this.setState({ userDeposit: result.c[0]})
+            return this.setState({ contract: LDelayBaseInstance, account: accounts[0] })
         })
-    }) 
-  }
+    })
+}
 
   handleClick(event){
       const contract = this.state.contract
       const account = this.state.account
+
+      return contract.depositPremium(10, {from: account, value: this.state.web3.toWei(50, "finney")})
+        .then((result) => {
+            return contract.getBalance.call({ from: account })
+        }).then((response) => {
+            return this.setState({ userDeposit: response.toString(10)})
+          })
   }
 
   render() {
