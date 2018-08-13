@@ -6,3 +6,4 @@ test/.placeholder
 build
 node_modules
 .DS_store
+helper.rtf

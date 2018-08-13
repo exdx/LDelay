@@ -71,7 +71,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     /** @dev Constructor - determine oracle contract address 
       * @dev The address of the oracle is passed in at deployment
       * @dev Calls setBaseContract in oracle contract with this address */
-    constructor(address _t) public {
+    constructor(address _t) public payable {
         oracle = LDelayOracleInterface(_t);
         oracle.setBaseContractAddress(this);
     }
@@ -122,7 +122,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
       * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function
       * @dev This is an expensive function call since it requires the gas to pay the oracle fee 
     */
-    function callOraclefromBase() external {
+    function callOraclefromBase() external payable {
         uint _policyid = addressPolicyMap[msg.sender];
         uint _coverageTimeLimit = addressTimeLimitMap[msg.sender];
 

@@ -6,7 +6,7 @@ contract LDelayBaseInterface {
     function issuePolicy() external;
     function approveClaim() external;
     function setLTRAINSTATUS(string, uint) public;
-    function callOraclefromBase() external;
+    function callOraclefromBase() external payable;
     function setPolicyStatus(uint, string) internal;
     function getTotalCoverage() public view returns (uint); 
     function getBalance() public view returns (uint); 
