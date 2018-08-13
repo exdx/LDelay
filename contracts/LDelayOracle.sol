@@ -8,11 +8,13 @@ import "./LDelayBaseInterface.sol";
 contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     mapping (bytes32 => uint) policyIDindex; // used to correlate queryID with order in which policy oracle queries were made
     mapping (bytes32 => bool) public pendingQueries;
+    mapping (bytes32 => string) resultIDindex;
 
     LDelayBaseInterface base;
 
     event NewOraclizeQuery(string description);
     event LTrainStatusUpdate(string result);
+    event QueryIDEvent(bytes32 queryID);
 
     /** @dev Holds result of oraclize query in mtaFeedAPIresult string
       * @return Three possibilities: "Normal", "Delayed", or "Unknown"
@@ -26,7 +28,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         require (pendingQueries[myid] == true, "Query is not processed properly");
         emit LTrainStatusUpdate(result);
 
-        setBaseTrainStatus(result, policyIDindex[myid]);
+        resultIDindex[myid] = result;
         delete pendingQueries[myid]; // This effectively marks the query id as processed.
     }
 
@@ -45,8 +47,11 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     }
 
 /** @dev Calls setter function in base contract to update train state */
-    function setBaseTrainStatus(string result, uint _policyID) internal {
-        base.setLTRAINSTATUS(result, _policyID);
+    function setBaseTrainStatus(bytes32 _queryID) internal {
+        string _result = resultIDindex[_queryID];
+        uint _policyID = policyIDindex[_queryID];
+        
+        base.setLTRAINSTATUS(_result, _policyID);
     }
 
 /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 

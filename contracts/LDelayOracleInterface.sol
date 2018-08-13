@@ -4,6 +4,6 @@ pragma solidity ^0.4.24;
 contract LDelayOracleInterface {
     function __callback(bytes32, string) public;
     function getLTrainStatus(uint, uint) external payable;
-    function setBaseTrainStatus(string, uint) internal;
+    function setBaseTrainStatus(bytes32) internal;
     function setBaseContractAddress(address) external;
 }

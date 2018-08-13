@@ -130,7 +130,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
         if (!policies[_policyid].FinalStatus.equal("0")) revert(); //Policy status must be unknown to call oracle
 
         emit LogOracleQueryMade(_policyid);
-        oracle.getLTrainStatus(_coverageTimeLimit, _policyid);
+        oracle.getLTrainStatus.value(msg.value)(_coverageTimeLimit, _policyid);
     }
 
     /** @dev Approve claim for a given beneficiary: user calls this function to receive payout (if their policy reflects a delay)
