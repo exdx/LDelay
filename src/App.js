@@ -86,6 +86,7 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>LDelay: Decentralized Parametric Microinsurance</h1>
               <p>Buy insurance against L train delays today!</p>
+              <p>Your Account: {this.state.account} </p>
               <h2>Purchase</h2>
               <p>LDelay enables you to purchase insurance covering your future trip.<br></br>
               When will you arrive at the subway station?</p> 

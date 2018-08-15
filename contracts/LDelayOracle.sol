@@ -48,7 +48,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
 
 /** @dev Calls setter function in base contract to update train state */
     function setBaseTrainStatus(bytes32 _queryID) internal {
-        string _result = resultIDindex[_queryID];
+        string storage _result = resultIDindex[_queryID];
         uint _policyID = policyIDindex[_queryID];
         
         base.setLTRAINSTATUS(_result, _policyID);

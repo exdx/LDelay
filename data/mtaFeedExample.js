@@ -1,8 +1,10 @@
-//This is the node query being executed to hit the MTA API. The example is meant to demonstrate the implementation is real - live MTA data is being requested by the contract
-//The code is being executed via a lambda function with an API gateway - this API endpoint is what the LDelayOracle is ultimately querying
-//The lambda function is a slightly modified version of this code to conform to AWS Lambda standards
-//The actual node application is at https://github.com/Denton24646/node-mta-gtfs-api so one could test the MTA API locally as well.
-//Note requesting data from the MTA API needs an API key which is free but requires registering with the MTA
+/*
+This is the node function being executed to query the MTA API. The example is meant to demonstrate the implementation is real - live MTA data is being requested by the contract
+The code is being executed via a lambda function with an API gateway - this API endpoint is what the LDelayOracle is ultimately querying
+The lambda function is a slightly modified version of this code to conform to AWS Lambda standards
+The actual node application is at https://github.com/Denton24646/node-mta-gtfs-api so one could test the MTA API locally as well.
+Note requesting data from the MTA API requires an API key which is free but registering personal information with the MTA is necessary.
+*/
 
 var GtfsRealtimeBindings = require('gtfs-realtime-bindings');
 var request = require('request');
