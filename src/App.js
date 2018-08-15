@@ -15,6 +15,7 @@ class App extends Component {
       web3: null,
       contract: null,
       account: null,
+      balance: null,
       userDeposit: 0,
       userCoverage: 0,
       userTimeLimit: 0
@@ -78,7 +79,7 @@ class App extends Component {
     return (
       <div className="App">
         <nav className="navbar pure-menu pure-menu-horizontal">
-            <a href="#" className="pure-menu-heading pure-menu-link">Truffle Box</a>
+            <a href="#" className="pure-menu-heading pure-menu-link">LDelay</a>
         </nav>
 
         <main className="container">

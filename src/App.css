@@ -27,7 +27,7 @@ code {
 }
 
 .pure-button-primary:hover {
-  background-color: #233e5e;
+  background-color: #f191d9;
 }
 
 .pure-form input[type="text"]:focus {
@@ -39,18 +39,18 @@ code {
 .navbar {
   position: fixed;
   padding: 5px;
-  background: #0c1a2b;
+  background: #c1eedf;
   font-family: 'Oswald', 'Arial Narrow', sans-serif;
 }
 
 .navbar a {
-  color: #fff;
+  color: rgb(0, 0, 0);
 }
 
 .navbar a:active,
 .navbar a:focus,
 .navbar a:hover {
-  background: #233e5e;
+  background: #3be2da;
 }
 
 .navbar .pure-menu-heading {
