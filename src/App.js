@@ -62,7 +62,7 @@ class App extends Component {
       const contract = this.state.contract
       const account = this.state.account
 
-      return contract.depositPremium(10, {from: account, value: this.state.web3.toWei(10, "finney")})
+      return contract.depositPremium(this.state.userTimeLimit, {from: account, value: this.state.web3.toWei(10, "finney")})
         .then((result) => {
             return contract.getBalance.call({ from: account })
         }).then((response) => {
@@ -70,10 +70,32 @@ class App extends Component {
           })
   }
 
-  handleChange(event) {
-    this.setState({value: this.state.userTimeLimit});
+  issuePolicy(event) {
+    const contract = this.state.contract
+    const account = this.state.account
+
+    return contract.issuePolicy({from: account})
+    .then((result) => {
+        return contract.getCoverage.call({ from: account })
+    }).then((response) => {
+        return this.setState({ userCoverage: this.state.web3.fromWei(response.toNumber(), "ether" )})
+      })
   }
 
+  callOracle(event) {
+    const contract = this.state.contract
+    const account = this.state.account
+
+    return contract.callOraclefromBase({from: account})
+  }
+
+  buttonTimeChange(event) {
+    this.setState({ userTimeLimit: event.target.value }, this.handleTimeSubmit);
+  }
+
+  handleTimeSubmit(event) {
+      console.log('The user has select a time coverage of: '+ this.state.userTimeLimit + ' minutes.');
+  }
 
   render() {
     return (
@@ -86,21 +108,26 @@ class App extends Component {
           <div className="pure-g">
             <div className="pure-u-1-1">
               <h1>LDelay: Decentralized Parametric Microinsurance</h1>
-              <p>Buy insurance against L train delays today!</p>
+              <p>Buy insurance against L train delays today! <br></br>
+              More information is on the <a href="https://github.com/Denton24646/LDelay#ldelay">github</a></p>
               <p>Your Account: {this.state.account} </p>
-              <h2>Purchase</h2>
+              <p><i>Please follow the steps in order.</i></p>
+              <h2>1) Purchase Coverage</h2>
               <p>LDelay enables you to purchase insurance covering your future trip.<br></br>
-              When will you arrive at the subway station?</p> 
-                <form onSubmit={this.handleSubmit}>
-                <label>
-                <input type="text" value="In minutes" onChange={this.handleChange} style={{fontStyle: 'italic'}} />
-                </label>
-                <input type="submit" value="Submit" />
+              Please note your arrival should be between 5 and 60 minutes into the future. You may only purchase one policy per account. <br></br>
+              When will you arrive at the subway station (in minutes)?</p> 
+                <form>
+                <input type="text" style={{fontStyle: 'italic'}} value={this.state.value} onBlur={this.buttonTimeChange.bind(this)}/>
                 </form>
-              <p>Your premium was: {this.state.userDeposit} ETH</p>
-              <button onClick={this.purchaseCoverage.bind(this, this.state.userDeposit)}>Purchase Coverage</button>
-              <h2>Coverage</h2>
-              <p>Your coverage is: {this.state.userCoverage} ETH for {this.state.userTimeLimit} minutes in the future.</p>
+              <p>You selected coverage for {this.state.userTimeLimit} minutes into the future.</p>
+              <button onClick={this.purchaseCoverage.bind(this)}>Purchase Coverage</button>
+              <p>Your premium was: {this.state.userDeposit} ETH. Please issue yourself a policy.</p>
+              <h2>2) Issue Policy</h2>
+              <button onClick={this.issuePolicy.bind(this)}>Issue Policy</button>
+              <p>Your coverage is for {this.state.userTimeLimit} minutes into the future with a limit of {this.state.userCoverage}. </p>
+              <h2>3) Call Oracle Service</h2>
+              <p>The oracle will issue a query to the MTA to determine the status of the train at the time you selected. </p>
+              <button onClick={this.callOracle.bind(this)}>Call Oracle</button>
             </div>
           </div>
         </main>
@@ -110,3 +137,5 @@ class App extends Component {
 }
 
 export default App
+
+               
