@@ -52,6 +52,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         uint _policyID = policyIDindex[_queryID];
         
         base.setLTRAINSTATUS(_result, _policyID);
+        delete resultIDindex[_queryID];
     }
 
 /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 

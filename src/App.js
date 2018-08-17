@@ -86,7 +86,7 @@ class App extends Component {
     const contract = this.state.contract
     const account = this.state.account
 
-    return contract.callOraclefromBase({from: account})
+    return contract.callOraclefromBase({from: account, value: this.state.web3.toWei(0.1, "ether")})
   }
 
   buttonTimeChange(event) {
