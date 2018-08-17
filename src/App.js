@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import LDelayBase from '../build/contracts/LDelayBase.json'
+import LDelayOracle from '../build/contracts/LDelayOracle.json'
 import getWeb3 from './utils/getWeb3'
 
 import './css/oswald.css'
@@ -14,6 +15,7 @@ class App extends Component {
     this.state = {
       web3: null,
       contract: null,
+      oracle: null,
       account: null,
       balance: null,
       userDeposit: 0,
@@ -44,19 +46,28 @@ class App extends Component {
 
     const contract = require('truffle-contract')
     const ldelayContract = contract(LDelayBase)
+    const ldelayOracle = contract(LDelayOracle)
     ldelayContract.setProvider(this.state.web3.currentProvider)
 
-    // Declaring this for later so we can chain functions on LDelayBase.
+    // Declaring this for later so we can chain functions on LDelayBase/LDelayOracle.
     var LDelayBaseInstance
+    var LDelayOracleInstance
 
-    // Get accounts and contract.
+    // Get oracle contract.
+    this.state.web3.eth.getAccounts((error, accounts) => {
+        ldelayOracle.deployed().then((instance) => {
+            LDelayOracleInstance = instance
+            return this.setState({ oracle: LDelayOracleInstance })
+        })
+    }) 
+    // Get base contract and account. 
     this.state.web3.eth.getAccounts((error, accounts) => {
         ldelayContract.deployed().then((instance) => {
             LDelayBaseInstance = instance
             return this.setState({ contract: LDelayBaseInstance, account: accounts[0] })
-        })
     })
-  }
+  })
+}
 
   purchaseCoverage(event) {
       const contract = this.state.contract
@@ -84,10 +95,15 @@ class App extends Component {
 
   callOracle(event) {
     const contract = this.state.contract
+    const oracle = this.state.oracle
     const account = this.state.account
 
     return contract.callOraclefromBase({from: account, value: this.state.web3.toWei(0.1, "ether")})
-  }
+    // .then((result) => {
+    //     return oracle.setBaseTrainStatus
+
+    // })
+  } 
 
   buttonTimeChange(event) {
     this.setState({ userTimeLimit: event.target.value }, this.handleTimeSubmit);
@@ -128,6 +144,7 @@ class App extends Component {
               <h2>3) Call Oracle Service</h2>
               <p>The oracle will issue a query to the MTA to determine the status of the train at the time you selected. </p>
               <button onClick={this.callOracle.bind(this)}>Call Oracle</button>
+              <p>Your oracle query was sent and will return in {this.state.userTimeLimit} minutes!</p>
             </div>
           </div>
         </main>

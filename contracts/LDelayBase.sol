@@ -1,13 +1,13 @@
 pragma solidity ^0.4.24;
 
-import "./Ownable.sol";
+import "./Pausable.sol";
 import "./LDelayBaseInterface.sol";
 import "./LDelayOracleInterface.sol";
 import { SafeMath } from "../libraries/SafeMath.sol";
 import { StringUtils } from "../libraries/StringUtils.sol";
 
 /** @title Provides base functionality for insurance functions: deposit/issue policy/withdraw */
-contract LDelayBase is LDelayBaseInterface, Ownable {
+contract LDelayBase is LDelayBaseInterface, Pausable {
      	
     using SafeMath for uint;
     using StringUtils for string;
@@ -57,6 +57,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     event LogPayoutMade(address claimant, uint amount);
     event LogPolicyMade(address accountAddress, uint amount, uint policyID);
     event LogOracleQueryMade(uint policyID);
+    event LogOracleStateSet(uint policyID); 
 
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
@@ -174,6 +175,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
       * @param _policyState The final policy state
      */
     function setPolicyStatus(uint _policyID, string _policyState) internal {
+        emit LogOracleStateSet(_policyID);
         policies[_policyID].FinalStatus = _policyState;
     }
 

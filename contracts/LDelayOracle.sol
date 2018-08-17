@@ -13,16 +13,20 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     LDelayBaseInterface base;
 
     event NewOraclizeQuery(string description);
-    event LTrainStatusUpdate(string result);
+    event LTrainStatusUpdate(string result, bytes32 id);
     event QueryIDEvent(bytes32 queryID);
 
     /** @dev Constructor is payable to allow ether in be sent on migration to pay for oraclize calls  */
     constructor() public payable {}
 
+    /** @dev Callback of oraclize query - standard oraclize library implementation
+      * @param myid The query ID oraclize assigns to the request
+      * @param result The result of the API call   
+     */
     function __callback(bytes32 myid, string result) public {
         if (msg.sender != oraclize_cbAddress()) revert();
         require (pendingQueries[myid] == true, "Query is not processed properly");
-        emit LTrainStatusUpdate(result);
+        emit LTrainStatusUpdate(result, myid);
 
         resultIDindex[myid] = result;
         delete pendingQueries[myid]; // This effectively marks the query id as processed.
@@ -34,7 +38,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
       * @param _externalPolicyID The policyID associated with the query request
      */
     function getLTrainStatus(uint _futureTime, uint _externalPolicyID) external payable {
-        /*if (msg.sender != address(base)) revert();  TESTING */
+        if (msg.sender != address(base)) revert();
         uint delaySeconds = _futureTime * 60;
         // require ETH to cover callback gas costs
         require(msg.value >= 0.000175 ether, "Cannot cover oraclize costs"); // 175,000 gas * 1 Gwei = 0.000175 ETH
@@ -45,10 +49,11 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         policyIDindex[queryId] = _externalPolicyID;
     }
 
-/** @dev Calls setter function in base contract to update train state 
-  * @param _queryID The query ID that is associated with the query result and policy
- */
+    /** @dev Calls setter function in base contract to update train state 
+      * @param _queryID The query ID that is associated with the query result and policy
+     */
     function setBaseTrainStatus(bytes32 _queryID) internal {
+        //map[hash of queryID] = queryID
         string storage _result = resultIDindex[_queryID];
         uint _policyID = policyIDindex[_queryID];
         
@@ -56,9 +61,9 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         delete resultIDindex[_queryID];
     }
 
-/** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 
-  * @dev Can only be called once to set the Base address
-  */
+    /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 
+      * @dev Can only be called once to set the Base address
+     */
     function setBaseContractAddress(address _baseAddress) external {
         require(address(base) == address(0), "Base Address has already been set");
         base = LDelayBaseInterface(_baseAddress);

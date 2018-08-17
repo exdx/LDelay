@@ -32,7 +32,6 @@
     "http-proxy-middleware": "0.17.2",
     "jest": "18.1.0",
     "json-loader": "0.5.4",
-    "lite-server": "^2.4.0",
     "object-assign": "4.1.0",
     "path-exists": "2.1.0",
     "postcss-loader": "1.0.0",
