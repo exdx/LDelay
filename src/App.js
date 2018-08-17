@@ -98,7 +98,7 @@ class App extends Component {
     const oracle = this.state.oracle
     const account = this.state.account
 
-    return contract.callOraclefromBase({from: account, value: this.state.web3.toWei(0.1, "ether")})
+    return contract.callOraclefromBase({from: account, value: this.state.web3.toWei("0.000175", "ether"), gas: '3000000'})
     // .then((result) => {
     //     return oracle.setBaseTrainStatus
 
@@ -125,7 +125,7 @@ class App extends Component {
             <div className="pure-u-1-1">
               <h1>LDelay: Decentralized Parametric Microinsurance</h1>
               <p>Buy insurance against L train delays today! <br></br>
-              More information is on the <a href="https://github.com/Denton24646/LDelay#ldelay">github</a></p>
+              More information is on the <a href="https://github.com/Denton24646/LDelay#ldelay">LDelay GitHub.</a></p>
               <p>Your Account: {this.state.account} </p>
               <p><i>Please follow the steps in order.</i></p>
               <h2>1) Purchase Coverage</h2>
@@ -140,7 +140,7 @@ class App extends Component {
               <p>Your premium was: {this.state.userDeposit} ETH. Please issue yourself a policy.</p>
               <h2>2) Issue Policy</h2>
               <button onClick={this.issuePolicy.bind(this)}>Issue Policy</button>
-              <p>Your coverage is for {this.state.userTimeLimit} minutes into the future with a limit of {this.state.userCoverage}. </p>
+              <p>Your coverage is for {this.state.userTimeLimit} minutes into the future with a limit of {this.state.userCoverage} ETH. </p>
               <h2>3) Call Oracle Service</h2>
               <p>The oracle will issue a query to the MTA to determine the status of the train at the time you selected. </p>
               <button onClick={this.callOracle.bind(this)}>Call Oracle</button>

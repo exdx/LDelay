@@ -122,7 +122,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
     /** @dev Oracle callback to determine status of policy at the end of the time limit (provided in minutes)
       * @dev This is then reflected in the Final Status of that policy struct and used in the approveClaim function
       * @dev This is an expensive function call since it requires the gas to pay the oracle fee 
-    */
+     */
     function callOraclefromBase() external payable {
         uint _policyid = addressPolicyMap[msg.sender];
         uint _coverageTimeLimit = addressTimeLimitMap[msg.sender];
@@ -136,7 +136,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
 
     /** @dev Approve claim for a given beneficiary: user calls this function to receive payout (if their policy reflects a delay)
       * @dev Claim gets posted and approved only if train state is "Delayed" by confirming the Final Status of that policy
-    */
+     */
     function approveClaim() external inPool {
         uint _policyid = addressPolicyMap[msg.sender];
         require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
@@ -191,14 +191,6 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
     function getCoverage() public view returns (uint) {
         return coverages[msg.sender];
     }
-
-    // function emergencyStop() private  onlyOwner returns (bool) {
-    //     //stops all contract functions
-    //     //use emergey stop library
-
-    //     bool isStopped = false;
-    //     return isStopped;
-    // }
 
     function () public {
         revert();
