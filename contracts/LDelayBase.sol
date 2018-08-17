@@ -148,7 +148,7 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
         //Final Status should be equal to "Delayed" for the claim to be accepted
         require(policies[_policyid].FinalStatus.equal(LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
 
-    /** @dev Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage*/
+        //Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage
         coverages[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].coverageLimit);
         balances[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].premium);
         totalCoverage.sub(policies[_policyid].coverageLimit);
@@ -158,17 +158,21 @@ contract LDelayBase is LDelayBaseInterface, Ownable {
     }
 
     /** @dev Set the LTRAINSTATUS variable: used in conjunction with the oraclize contract 
-      * @dev Also sets the FinalStatus variable for the relevant beneficiary */
+      * @dev Also sets the FinalStatus variable for the relevant beneficiary
+      * @param _status The final status of the policy in question
+      * @param _externalpolicyID The ID of the policy in question
+     */
     function setLTRAINSTATUS(string _status, uint _externalpolicyID) public {
         if (msg.sender != address(oracle)) revert();
         LTRAINSTATUS = _status;
         setPolicyStatus(_externalpolicyID, _status);
     }
 
-
-
     /** @dev Set final policy status for policyholder 
-        @dev FinalStatus is used in approveClaim to determine if policyholder is eligible for a payout */
+      * @dev FinalStatus is used in approveClaim to determine if policyholder is eligible for a payout
+      * @param _policyID The ID of the policy in question
+      * @param _policyState The final policy state
+     */
     function setPolicyStatus(uint _policyID, string _policyState) internal {
         policies[_policyID].FinalStatus = _policyState;
     }

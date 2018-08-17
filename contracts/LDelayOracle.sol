@@ -4,7 +4,7 @@ import "./usingOraclize.sol";
 import "./LDelayOracleInterface.sol";
 import "./LDelayBaseInterface.sol";
 
-/** @title Use oraclize to hit custom AWS endpoint to get train status */ 
+/** @title Use oraclize to query custom AWS Lambda function to get train status. Three possible results: "Normal", "Delayed", or "Unknown" */ 
 contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     mapping (bytes32 => uint) policyIDindex; // used to correlate queryID with order in which policy oracle queries were made
     mapping (bytes32 => bool) public pendingQueries;
@@ -15,10 +15,6 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     event NewOraclizeQuery(string description);
     event LTrainStatusUpdate(string result);
     event QueryIDEvent(bytes32 queryID);
-
-    /** @dev Holds result of oraclize query in mtaFeedAPIresult string
-      * @return Three possibilities: "Normal", "Delayed", or "Unknown"
-    */
 
     /** @dev Constructor is payable to allow ether in be sent on migration to pay for oraclize calls  */
     constructor() public payable {}
@@ -33,7 +29,10 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     }
 
     /** @dev Returns string of train status after querying MTA GTFS feed and deserializing result in a lambda function
-      * @dev Allows to pass in delay variable in case of callback */
+      * @dev Allows to pass in delay variable in case of callback
+      * @param _futureTime The time in the future the query will be executed - selected by the customer. Acts as a delay.
+      * @param _externalPolicyID The policyID associated with the query request
+     */
     function getLTrainStatus(uint _futureTime, uint _externalPolicyID) external payable {
         /*if (msg.sender != address(base)) revert();  TESTING */
         uint delaySeconds = _futureTime * 60;
@@ -46,7 +45,9 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         policyIDindex[queryId] = _externalPolicyID;
     }
 
-/** @dev Calls setter function in base contract to update train state */
+/** @dev Calls setter function in base contract to update train state 
+  * @param _queryID The query ID that is associated with the query result and policy
+ */
     function setBaseTrainStatus(bytes32 _queryID) internal {
         string storage _result = resultIDindex[_queryID];
         uint _policyID = policyIDindex[_queryID];
