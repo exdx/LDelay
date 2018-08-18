@@ -99,6 +99,7 @@ class App extends Component {
     const oracle = this.state.oracle
     const account = this.state.account
 
+    //policyEvent watches the oracle event to get the policy id assigned to the user - the ID is an argument to setBaseTrainStatus()
     var policyEvent = this.state.contract.LogOracleQueryMade({_from: this.state.account});
     policyEvent.watch(function(err, result) {
         if (err) {
@@ -110,10 +111,10 @@ class App extends Component {
       }.bind(this))
 
     return contract.callOraclefromBase({from: account, value: this.state.web3.toWei("0.000175", "ether"), gas: '3000000'})
-    // .then((result) => {
-    //     return oracle.setBaseTrainStatus
-
-    // })
+    .then((result) => {
+        return setTimeout(oracle.setBaseTrainStatus
+            ,(this.state.userTimeLimit + 2) * 1000, this.state.userPolicyID, {from: account, gas: '300000'}) //call function after time limit with the policy ID as an argument
+    })
   } 
 
   buttonTimeChange(event) {
