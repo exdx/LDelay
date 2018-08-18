@@ -20,7 +20,8 @@ class App extends Component {
       balance: null,
       userDeposit: 0,
       userCoverage: 0,
-      userTimeLimit: 0
+      userTimeLimit: 0,
+      userPolicyID: null
     }
   }
 
@@ -65,8 +66,8 @@ class App extends Component {
         ldelayContract.deployed().then((instance) => {
             LDelayBaseInstance = instance
             return this.setState({ contract: LDelayBaseInstance, account: accounts[0] })
+        })
     })
-  })
 }
 
   purchaseCoverage(event) {
@@ -97,6 +98,16 @@ class App extends Component {
     const contract = this.state.contract
     const oracle = this.state.oracle
     const account = this.state.account
+
+    var policyEvent = this.state.contract.LogOracleQueryMade({_from: this.state.account});
+    policyEvent.watch(function(err, result) {
+        if (err) {
+          console.log(err)
+          return;
+        }
+        console.log("User Policy ID is: " + result.args.policyID.c[0].toString())
+        return this.setState({ userPolicyID: result.args.policyID.c[0].toString() });
+      }.bind(this))
 
     return contract.callOraclefromBase({from: account, value: this.state.web3.toWei("0.000175", "ether"), gas: '3000000'})
     // .then((result) => {

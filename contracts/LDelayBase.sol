@@ -51,12 +51,12 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
       * @param coverageAmount Amount beneficiary is due to recieve in case delay. This is ideally dynamic but static to start.
     */
     uint premiumAmount = 10 finney;
-    uint coverageAmount = 20 finney;
+    uint coverageAmount = 200 finney;
 
     event LogDepositMade(address accountAddress, uint amount, uint policyID);
     event LogPayoutMade(address claimant, uint amount);
     event LogPolicyMade(address accountAddress, uint amount, uint policyID);
-    event LogOracleQueryMade(uint policyID);
+    event LogOracleQueryMade(address indexed _from, uint policyID);
     event LogOracleStateSet(uint policyID); 
 
     modifier inPool() {
@@ -130,7 +130,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         require(_coverageTimeLimit >= 5, "Please deposit premium before calling this function!");
         if (!policies[_policyid].FinalStatus.equal("0")) revert(); //Policy status must be unknown to call oracle
 
-        emit LogOracleQueryMade(_policyid);
+        emit LogOracleQueryMade(msg.sender, _policyid);
         oracle.getLTrainStatus.value(msg.value)(_coverageTimeLimit, _policyid); //call to oracle contract
     }
 
