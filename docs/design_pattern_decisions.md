@@ -1,0 +1,11 @@
+# Design Pattern Decisions
+
+The LDelay project features several design choices that were influenced by the ConsenSys course materials as well as the FlightDelay application designed by the Etherisc team. Chief among these decisions was the idea to modularize the contracts and functions as much as possible (seperation of concerns) and making heavy use of checks and require statements. Deliberately emitting events and using libraries such as Oraclize, SafeMath and StringUtils were also design decisions. 
+
+The LDelay contract suite consists of two main contracts. LDelayBase is responsible for all basic insurance functionality around depositing and withdrawing and stores data associated with the customer policy. The LDelayOracle contract is the other main contract that makes calls to the Oraclize engine to query the AWS Lambda endpoint and find the train status. These two contracts both rely on one another, with Base calling Oracle to get send the query initially, and then Oracle calling Base to set the policy status to the result of the query. This contract interplay was part of the seperation of concerns design pattern. Furthermore, functions were written to be modular and simple wherever possible. Modifiers and require statements were used as checks in these functions to limit attack vectors and prevent wasteful operations. 
+
+Events are emitted in almost every function - this is used to debug and provide useful information when events occur. The front end uses the results of events to pass arguments into subsequent function calls. 
+
+Libraries are used extensively - primarily the Oraclize library to issue oracle requests as well as SafeMath and StringUtils to provide convenient interfaces for safely working with contract data. 
+
+One design decision that was considered but not implemented because of time constraints was to decouple the payments from the Base contract by introducing a Claims contract. The Claims contract would hold all the ether deposited by customers and be responsible for payouts. This would be more secure. 
