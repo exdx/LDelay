@@ -6,9 +6,9 @@ import "./LDelayBaseInterface.sol";
 
 /** @title Use oraclize to query custom AWS Lambda function to get train status. Three possible results: "Normal", "Delayed", or "Unknown" */ 
 contract LDelayOracle is LDelayOracleInterface, usingOraclize {
-    mapping (bytes32 => uint) policyIDindex; // used to correlate queryID with order in which policy oracle queries were made
+    mapping (uint => bytes32) policyIDindex; // used to correlate policyID with query ID
     mapping (bytes32 => bool) public pendingQueries;
-    mapping (bytes32 => string) resultIDindex;
+    mapping (bytes32 => string) resultIDindex; // used to correlate queryID with result of API call
 
     LDelayBaseInterface base;
 
@@ -46,19 +46,16 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         emit NewOraclizeQuery("Oraclize callback query was sent, standing by for the answer..");
         bytes32 queryId = oraclize_query(delaySeconds, "URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
         pendingQueries[queryId] = true;
-        policyIDindex[queryId] = _externalPolicyID;
+        policyIDindex[_externalPolicyID] = queryId; 
     }
 
     /** @dev Calls setter function in base contract to update train state 
-      * @param _queryID The query ID that is associated with the query result and policy
+      * @param _externalPolicyID The policy ID that is associated with the query result and policy
      */
-    function setBaseTrainStatus(bytes32 _queryID) internal {
-        //map[hash of queryID] = queryID
-        string storage _result = resultIDindex[_queryID];
-        uint _policyID = policyIDindex[_queryID];
-        
-        base.setLTRAINSTATUS(_result, _policyID);
-        delete resultIDindex[_queryID];
+    function setBaseTrainStatus(uint _externalPolicyID) external {
+        string storage _result = resultIDindex[policyIDindex[_externalPolicyID]];
+        require(keccak256(abi.encodePacked(_result)) != keccak256(abi.encodePacked("")), "Callback for this policy has not finished executing"); 
+        base.setLTRAINSTATUS(_result, _externalPolicyID);
     }
 
     /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 
