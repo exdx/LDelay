@@ -57,7 +57,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
     event LogPayoutMade(address claimant, uint amount);
     event LogPolicyMade(address accountAddress, uint amount, uint policyID);
     event LogOracleQueryMade(address indexed _from, uint policyID);
-    event LogOracleStateSet(uint policyID); 
+    event LogOracleStateSet(uint indexed policyID, string result); 
 
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
@@ -147,6 +147,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         //Length of Final Status should be greater than "O" if the oracle query returned by this point
         require(_statuscheck > 0, "Claiming too soon - try again later");
         //Final Status should be equal to "Delayed" for the claim to be accepted
+        //Comment out the following line for testing purposes to confirm deposit/withdrawl both work OK
         require(policies[_policyid].FinalStatus.equal(LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
 
         //Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage
@@ -175,7 +176,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
       * @param _policyState The final policy state
      */
     function setPolicyStatus(uint _policyID, string _policyState) internal {
-        emit LogOracleStateSet(_policyID);
+        emit LogOracleStateSet(_policyID, _policyState);
         policies[_policyID].FinalStatus = _policyState;
     }
 
@@ -190,6 +191,10 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
 
     function getCoverage() public view returns (uint) {
         return coverages[msg.sender];
+    }
+
+    function verifyUserTrainStatus() public view returns (string) {
+        return policies[addressPolicyMap[msg.sender]].FinalStatus;
     }
 
     function () public {

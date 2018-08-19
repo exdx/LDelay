@@ -21,7 +21,8 @@ class App extends Component {
       userDeposit: 0,
       userCoverage: 0,
       userTimeLimit: 0,
-      userPolicyID: null
+      userPolicyID: null,
+      userTrainStatus: "unknown"
     }
   }
 
@@ -49,6 +50,7 @@ class App extends Component {
     const ldelayContract = contract(LDelayBase)
     const ldelayOracle = contract(LDelayOracle)
     ldelayContract.setProvider(this.state.web3.currentProvider)
+    ldelayOracle.setProvider(this.state.web3.currentProvider)
 
     // Declaring this for later so we can chain functions on LDelayBase/LDelayOracle.
     var LDelayBaseInstance
@@ -96,7 +98,6 @@ class App extends Component {
 
   callOracle(event) {
     const contract = this.state.contract
-    const oracle = this.state.oracle
     const account = this.state.account
 
     //policyEvent watches the oracle event to get the policy id assigned to the user - the ID is an argument to setBaseTrainStatus()
@@ -111,11 +112,27 @@ class App extends Component {
       }.bind(this))
 
     return contract.callOraclefromBase({from: account, value: this.state.web3.toWei("0.000175", "ether"), gas: '3000000'})
+  }
+
+  validateUserResult(event) {
+    const oracle = this.state.oracle
+    const account = this.state.account
+    const contract = this.state.contract
+
+    oracle.setBaseTrainStatus(this.state.userPolicyID, {from: account, gas: '300000'})
     .then((result) => {
-        return setTimeout(oracle.setBaseTrainStatus
-            ,(this.state.userTimeLimit + 2) * 1000, this.state.userPolicyID, {from: account, gas: '300000'}) //call function after time limit with the policy ID as an argument
+        return contract.verifyUserTrainStatus.call({ from: account })
+    }).then((response) => {
+        return this.setState({ userTrainStatus: response.toString() }, this.handleStatusSubmit);
     })
-  } 
+}
+  
+  approveClaim(event) {
+    const account = this.state.account
+    const contract = this.state.contract
+
+    contract.approveClaim({from: account, gas: '3000000'})
+  }
 
   buttonTimeChange(event) {
     this.setState({ userTimeLimit: event.target.value }, this.handleTimeSubmit);
@@ -123,6 +140,10 @@ class App extends Component {
 
   handleTimeSubmit(event) {
       console.log('The user has select a time coverage of: '+ this.state.userTimeLimit + ' minutes.');
+  }
+
+  handleStatusSubmit(event) {
+      console.log('The user final policy status is: ' + this.state.userTrainStatus)
   }
 
   render() {
@@ -136,13 +157,13 @@ class App extends Component {
           <div className="pure-g">
             <div className="pure-u-1-1">
               <h1>LDelay: Decentralized Parametric Microinsurance</h1>
-              <p>Buy insurance against L train delays today! <br></br>
+              <p>Buy microinsurance against L train delays today! <br></br>
               More information is on the <a href="https://github.com/Denton24646/LDelay#ldelay">LDelay GitHub.</a></p>
               <p>Your Account: {this.state.account} </p>
               <p><i>Please follow the steps in order.</i></p>
               <h2>1) Purchase Coverage</h2>
-              <p>LDelay enables you to purchase insurance covering your future trip.<br></br>
-              Please note your arrival should be between 5 and 60 minutes into the future. You may only purchase one policy per account. <br></br>
+              <p>LDelay enables you to purchase microinsurance covering your future trip.<br></br>
+              Please note your subway arrival time should be between 5 and 60 minutes into the future. You may only purchase one policy per account. <br></br>
               When will you arrive at the subway station (in minutes)?</p> 
                 <form>
                 <input type="text" style={{fontStyle: 'italic'}} value={this.state.value} onBlur={this.buttonTimeChange.bind(this)}/>
@@ -157,6 +178,14 @@ class App extends Component {
               <p>The oracle will issue a query to the MTA to determine the status of the train at the time you selected. </p>
               <button onClick={this.callOracle.bind(this)}>Call Oracle</button>
               <p>Your oracle query was sent and will return in {this.state.userTimeLimit} minutes!</p>
+              <h2>4) Process Claim</h2>
+              <button onClick={this.validateUserResult.bind(this)}>Verify Train Status</button>
+              <p>The train status at the time you selected was {this.state.userTrainStatus}. </p>
+              <p>You may make a claim and if your train was delayed you will automatically get sent your coverage amount!</p>
+              <button onClick={this.approveClaim.bind(this)}>Process Claim</button>
+              <br></br>
+              <p>Thanks for choosing LDelay! Have a great day.</p>
+
             </div>
           </div>
         </main>

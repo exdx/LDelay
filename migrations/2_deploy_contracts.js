@@ -10,7 +10,7 @@ module.exports = function(deployer, network, accounts) {
   deployer.link(SafeMath, LDelayBase).then(() => {
         deployer.link(StringUtils, LDelayBase)
     });
-    deployer.deploy(LDelayOracle, {from: accounts[9], gas: 6000000, value: 500000000000000000}).then(function() {
-        return deployer.deploy(LDelayBase, LDelayOracle.address, {from: accounts[9], gas: 6000000, value: 500000000000000000});
+    deployer.deploy(LDelayOracle, {from: accounts[9], gas: 6000000, value: 1000000000000000000}).then(function() {
+        return deployer.deploy(LDelayBase, LDelayOracle.address, {from: accounts[9], gas: 6000000, value: 2000000000000000000});
     });
 };

@@ -11,4 +11,5 @@ contract LDelayBaseInterface {
     function getTotalCoverage() public view returns (uint); 
     function getBalance() public view returns (uint); 
     function getCoverage() public view returns (uint); 
+    function verifyUserTrainStatus() public view returns (string);
 }
