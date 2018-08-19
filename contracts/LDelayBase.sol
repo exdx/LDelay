@@ -114,7 +114,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         policies[_policyid] = Policy(_policyid, premiumAmount, coverageAmount, _coverageTimeLimit, "0");
         emit LogPolicyMade(msg.sender, coverageAmount, _policyid);
 
-        coverages[beneficiaries[_policyid].beneficiaryAddress] = coverageAmount;
+        coverages[msg.sender] = coverageAmount;
         totalCoverage.add(coverageAmount);
         policyID++;
     }
@@ -135,28 +135,29 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
     }
 
     /** @dev Approve claim for a given beneficiary: user calls this function to receive payout (if their policy reflects a delay)
-      * @dev Claim gets posted and approved only if train state is "Delayed" by confirming the Final Status of that policy
+      * @dev Claim approved only if train state is "Delayed" by confirming the Final Status of that policy
+      * @dev If status is "Normal" the customer coverage and premium is reset but no payment is made
      */
     function approveClaim() external inPool {
         uint _policyid = addressPolicyMap[msg.sender];
-        require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
-        require(totalCoverage >= policies[_policyid].coverageLimit, "Not enough equity is left in the pool to cover claim");
+        // require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
+        // require(totalCoverage >= coverageAmount, "Not enough equity is left in the pool to cover claim");
 
-        int _statuscheck = policies[_policyid].FinalStatus.compare("0"); 
+        //int _statuscheck = policies[_policyid].FinalStatus.compare("0"); 
 
         //Length of Final Status should be greater than "O" if the oracle query returned by this point
-        require(_statuscheck > 0, "Claiming too soon - try again later");
-        //Final Status should be equal to "Delayed" for the claim to be accepted
-        //Comment out the following line for testing purposes to confirm deposit/withdrawl both work OK
-        require(policies[_policyid].FinalStatus.equal(LTRAINSTATES[1]), "Final policy status was not delayed - cannot pay claim");
+        //require(_statuscheck > 0, "Claiming too soon - try again later");
 
         //Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage
-        coverages[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].coverageLimit);
-        balances[beneficiaries[_policyid].beneficiaryAddress].sub(policies[_policyid].premium);
-        totalCoverage.sub(policies[_policyid].coverageLimit);
+        coverages[msg.sender] = 0;
+        balances[msg.sender] = 0;
+        //totalCoverage.sub(coverageAmount);
 
-        emit LogPayoutMade(beneficiaries[_policyid].beneficiaryAddress, policies[_policyid].coverageLimit); 
-        beneficiaries[_policyid].beneficiaryAddress.transfer(policies[_policyid].coverageLimit);
+        //Final Status should be equal to "Delayed" for the claim to be accepted and transfer made
+        if (policies[_policyid].FinalStatus.equal(LTRAINSTATES[1])) { 
+            emit LogPayoutMade(beneficiaries[_policyid].beneficiaryAddress, policies[_policyid].coverageLimit); 
+            beneficiaries[_policyid].beneficiaryAddress.transfer(policies[_policyid].coverageLimit);
+        }
     }
 
     /** @dev Set the LTRAINSTATUS variable: used in conjunction with the oraclize contract 
