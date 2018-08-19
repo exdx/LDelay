@@ -4,12 +4,14 @@ A decentralized application running on Ethereum which enables users to purchase 
 ## What's LDelay about?
 We all hate the feeling when our train is delayed right when we need to make an important trip - what if there were a way to buy a small amount of insurance to cover such an event? In the case of a delay you would get a payout above the small amount you paid for it. It would make the whole commute process a little more pleasant. The only way to provide such a service, cutting through all the red tape and bureacracy of established insurance channels, is through a public blockchain with rich smart contract capabilities.
 
+![alt text](https://i.imgur.com/OqqXrq3.png "LDelay Interface")
+
 ## Implementation Details
 * Separation of concerns
 * Oraclize
-* Automation
 * Security
 * Metamask
+* React.js
 * Docs for more info on attacks/security patterns
 
 ## User Story
@@ -22,6 +24,7 @@ The end result in either case is the customer is given an opportunity to efficie
 # Setup
 * Vagrant running Ubuntu 16.04 LTS
 * Truffle
+* ethereum-bridge
 
 # Getting Started
 ![Alt Text](https://media.giphy.com/media/JiuX6CeCM0us0/giphy.gif)

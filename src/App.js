@@ -160,7 +160,7 @@ class App extends Component {
               <p>Buy microinsurance against L train delays today! <br></br>
               More information is on the <a href="https://github.com/Denton24646/LDelay#ldelay">LDelay GitHub.</a></p>
               <p>Your Account: {this.state.account} </p>
-              <p><i>Please follow the steps in order.</i></p>
+              <p><i>Please follow the steps in order. <br></br>Steps 1-3 are meant to be done sequentially right away. Step 4 is for later, after the trip.</i></p>
               <h2>1) Purchase Coverage</h2>
               <p>LDelay enables you to purchase microinsurance covering your future trip.<br></br>
               Please note your subway arrival time should be between 5 and 60 minutes into the future. You may only purchase one policy per account. <br></br>
