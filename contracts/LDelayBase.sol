@@ -82,7 +82,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
       * @param _coverageTimeLimit The time in the future the customer wants to be covered against delay. At this time the oracle queries again to determine train status. 
       * This parameter will be provided by the user in minutes and then converted to block numbers in the future
      */
-    function depositPremium(uint _coverageTimeLimit) external payable {
+    function depositPremium(uint _coverageTimeLimit) external payable whenNotPaused {
         require(balances[msg.sender] == 0, "customer balances must be zero"); 
         require(msg.value >= premiumAmount, "customer must deposit >= premium");
         require(_coverageTimeLimit >= 5, "coverage must be for at least 5 minutes");
@@ -104,7 +104,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
       * @dev Calls the callOraclefromBase function to issue a callback as to the final train state
       * @dev Must be protected against reentrancy attacks (via modifier)
      */
-    function issuePolicy() external notInPool {
+    function issuePolicy() external notInPool whenNotPaused {
         //Note: if the customer purchases again with the same address the mappings will be overwritten with the latest (OK)
         uint _policyid = addressPolicyMap[msg.sender]; 
         uint _coverageTimeLimit = addressTimeLimitMap[msg.sender];
@@ -138,7 +138,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
       * @dev Claim approved only if train state is "Delayed" by confirming the Final Status of that policy
       * @dev If status is "Normal" the customer coverage and premium is reset but no payment is made
      */
-    function approveClaim() external inPool {
+    function approveClaim() external inPool whenNotPaused {
         uint _policyid = addressPolicyMap[msg.sender];
         // require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
         // require(totalCoverage >= coverageAmount, "Not enough equity is left in the pool to cover claim");
