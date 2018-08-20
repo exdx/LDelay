@@ -10,4 +10,5 @@ contract TestLDelayOracle {
         uint expected = 1000000000000000000;
         Assert.equal(oracle.balance, expected, "Contract should have a balance of 1 ether to start");
     }
+
 }

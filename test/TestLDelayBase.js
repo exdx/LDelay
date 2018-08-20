@@ -23,7 +23,7 @@ contract('LDelayBase', function(accounts){
             })
         })
     });
-    it("should allow for the user to issue a policy", function() {
+    it("should allow for the user to issue themselves a policy", function() {
         return LDelayBase.deployed()
         .then(function(instance) {
             ldelay = instance;
@@ -33,5 +33,26 @@ contract('LDelayBase', function(accounts){
         return ldelay.issuePolicy({from:accounts[0], gas: 2000000})
             })
         })
-    })
+    });
+    it("should allow a call to the oracle contract", function() {
+        //pass
+    });
+    it("should read user balances", function() {
+        //pass
+    });
+    it("should read user coverages", function() {
+        //pass
+    });
+    it("should read total coverage in the pool", function() {
+        //pass
+    });
+    it("should allow the user to call approve claim", function() {
+        //pass
+    });
+    it("should pay in the case the train status is delayed", function() {
+        //pass
+    });
+    it("should not pay in the case the train status is normal", function() {
+        //pass
+    });
 })
