@@ -1,3 +1,7 @@
+var HDWalletProvider = require("truffle-hdwallet-provider");
+var rinkeby = require('./rinkeby');
+
+
 module.exports = {
     networks: {
       development: {
@@ -6,11 +10,13 @@ module.exports = {
         network_id: "*" // Match any network id
       }
     },
-    solc: {
-        optimizer: {
-          enabled: true,
-          runs: 200
-        }
-      }
-  };
+    rinkeby: {
+        provider: function() {
+          return new HDWalletProvider(rinkeby.mnemonic, "https://rinkeby.infura.io/" + rinkeby.apiKey.toString());
+        },
+        network_id: 4,
+        gasPrice: 20000000000,
+        gas: 3716887
+  }
+};
   
