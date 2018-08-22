@@ -115,7 +115,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         emit LogPolicyMade(msg.sender, coverageAmount, _policyid);
 
         coverages[msg.sender] = coverageAmount;
-        totalCoverage.add(coverageAmount);
+        totalCoverage = totalCoverage.add(200); //add 200 finney to total pool coverage
         policyID++;
     }
 
@@ -140,8 +140,8 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
      */
     function approveClaim() external inPool whenNotPaused {
         uint _policyid = addressPolicyMap[msg.sender];
-        // require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
-        // require(totalCoverage >= coverageAmount, "Not enough equity is left in the pool to cover claim");
+        require(beneficiaries[_policyid].beneficiaryAddress == msg.sender, "caller is not original beneficiary");
+        require(totalCoverage >= 200, "Not enough equity is left in the pool to cover claim");
 
         //int _statuscheck = policies[_policyid].FinalStatus.compare("0"); 
 
@@ -151,7 +151,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         //Subtract coverages (limit) and balances (premium) for policyholder and decrement total pool coverage
         coverages[msg.sender] = 0;
         balances[msg.sender] = 0;
-        //totalCoverage.sub(coverageAmount);
+        totalCoverage = totalCoverage.sub(200); //subtract 200 finney from total pool coverage
 
         //Final Status should be equal to "Delayed" for the claim to be accepted and transfer made
         if (policies[_policyid].FinalStatus.equal(LTRAINSTATES[1])) { 
