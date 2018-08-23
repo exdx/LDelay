@@ -7,10 +7,10 @@ contract('LDelayOracle', function(accounts) {
 
     it("should accept a call to the oraclize library", function() {
         return LDelayOracle.deployed().then(function(instance) {
-                oracle = instance;
-                var policyid = 1;
-                var timelimit = 2;
-                return oracle.getLTrainStatus(policyid, timelimit, {from: baseAddress, value: web3.toWei(0.1, "ether"), gas:2000000})
+            oracle = instance;
+            var policyid = 1;
+            var timelimit = 2;
+            return oracle.getLTrainStatus(policyid, timelimit, {value: web3.toWei(0.1, "ether"), gas:2000000})
         });
     });
     it("should not accept a call from any contract other than base", function() {

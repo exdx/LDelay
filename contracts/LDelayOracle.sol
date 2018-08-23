@@ -50,6 +50,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     }
 
     /** @dev Calls setter function in base contract to update train state 
+      * @dev NOTE: This function is potentially insecure: anyone can set the train status of any policy - but the result information is accurate
       * @param _externalPolicyID The policy ID that is associated with the query result and policy
      */
     function setBaseTrainStatus(uint _externalPolicyID) external {

@@ -5,10 +5,13 @@ import "truffle/DeployedAddresses.sol";
 import "../contracts/LDelayOracle.sol";
 
 contract TestLDelayOracle {
-    function testInitialBalanceUsingDeployedContract() public {
-        address oracle = DeployedAddresses.LDelayOracle();
-        uint expected = 1000000000000000000;
-        Assert.equal(oracle.balance, expected, "Contract should have a balance of 1 ether to start");
-    }
 
+    address oracleAddress = DeployedAddresses.LDelayOracle();
+    LDelayOracle ldelayoracle = LDelayOracle(oracleAddress);
+
+  /** @dev Test to check initial contract balance is set correctly on deployment */ 
+    function testInitialBalanceUsingDeployedContract() public {
+        uint expected = 1000000000000000000;
+        Assert.equal(oracleAddress.balance, expected, "Contract should have a balance of 1 ether to start");
+    }
 }
