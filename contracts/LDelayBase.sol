@@ -58,6 +58,7 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
     event LogPolicyMade(address accountAddress, uint amount, uint policyID);
     event LogOracleQueryMade(address indexed _from, uint policyID);
     event LogOracleStateSet(uint indexed policyID, string result); 
+    event LogPolicyClosed(address indexed _from, uint policyID);
 
     modifier inPool() {
         require(coverages[msg.sender] > 0, "Address not covered");
@@ -157,6 +158,8 @@ contract LDelayBase is LDelayBaseInterface, Pausable {
         if (policies[_policyid].FinalStatus.equal(LTRAINSTATES[1])) { 
             emit LogPayoutMade(beneficiaries[_policyid].beneficiaryAddress, policies[_policyid].coverageLimit); 
             beneficiaries[_policyid].beneficiaryAddress.transfer(policies[_policyid].coverageLimit);
+        } else {
+            emit LogPolicyClosed(beneficiaries[_policyid].beneficiaryAddress, _policyid);
         }
     }
 
