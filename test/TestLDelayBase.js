@@ -134,9 +134,33 @@ contract('LDelayBase', function(accounts) {
         }).then(function() {
             return ldelay.approveClaim({from:accounts[8], gas: 2000000});
         }).then(function () {
-            var expectedBalance = web3.toWei("2", "ether") + web3.toWei("0.1", "finney") //100 ether plus 0.1 customer deposit 
-            contractBalance = web3.eth.getBalance(ldelay.address) - web3.toWei("0.1", "finney") * 8 //remove deposits from previous tests
-            assert.equal(contractBalance, expectedBalance.toString());
+            contractBalance = web3.eth.getBalance(ldelay.address);
+            initialBalance = 2000000000000000000;
+            assert.isAbove(contractBalance.toNumber(), initialBalance); //contract balance is higher than initial balance ie no payout
+        });
+    });
+    it("should be pausable", function() {
+        var ldelay;
+        var _state = true;
+        return LDelayBase.deployed().then(function(instance) {
+            ldelay = instance;
+            ldelay.pause({from:accounts[9], gas: 2000000})
+        }).then(function() {
+            return pausedStatus = ldelay.paused.call();
+        }).then(function(result) {
+            assert.equal(_state, result); // contract state is paused
+        });
+    });
+    it("should be unpausable", function() {
+        var ldelay;
+        var _state = false;
+        return LDelayBase.deployed().then(function(instance) {
+            ldelay = instance;
+            ldelay.unpause({from:accounts[9], gas: 2000000})
+        }).then(function() {
+            return pausedStatus = ldelay.paused.call();
+        }).then(function(result) {
+            assert.equal(_state, result); // contract state is paused
         });
     });
 })

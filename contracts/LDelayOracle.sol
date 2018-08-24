@@ -61,6 +61,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
 
     /** @dev Sets the LDelayBase address via LDelayBase calling this function upon deployment 
       * @dev Can only be called once to set the Base address
+      * @param _baseAddress The address of LDelayBase
      */
     function setBaseContractAddress(address _baseAddress) external {
         require(address(base) == address(0), "Base Address has already been set");

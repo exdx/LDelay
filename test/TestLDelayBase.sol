@@ -21,6 +21,9 @@ contract TestLDelayBase {
         Assert.equal(ldelaybase.owner(), _owner, "Contract owner is not expected owner");
     }
 
-    //Test Pause/Unpause functionality
-
+  /** @dev Test Pause/Unpause functionality */
+    function testInitialPauseOfDeployedContract() public {
+        bool _state = false;
+        Assert.equal(ldelaybase.paused(), _state, "Contract state expected to be unpaused");
+    }
 }
