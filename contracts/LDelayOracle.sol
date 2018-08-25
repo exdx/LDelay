@@ -4,7 +4,7 @@ import "./usingOraclize.sol";
 import "./LDelayOracleInterface.sol";
 import "./LDelayBaseInterface.sol";
 
-/** @title Use oraclize to query custom AWS Lambda function to get train status. Three possible results: "Normal", "Delayed", or "Unknown" */ 
+/** @title Use oraclize to query custom AWS Lambda function to get train status. */ 
 contract LDelayOracle is LDelayOracleInterface, usingOraclize {
     mapping (uint => bytes32) policyIDindex; // used to correlate policyID with query ID
     mapping (bytes32 => bool) public pendingQueries;
@@ -44,7 +44,7 @@ contract LDelayOracle is LDelayOracleInterface, usingOraclize {
         require(msg.value >= 0.000175 ether, "Cannot cover oraclize costs"); // 175,000 gas * 1 Gwei = 0.000175 ETH
 
         emit NewOraclizeQuery("Oraclize callback query was sent, standing by for the answer..");
-        bytes32 queryId = oraclize_query(delaySeconds, "URL", "https://lchink7hq2.execute-api.us-east-2.amazonaws.com/Live/");
+        bytes32 queryId = oraclize_query(delaySeconds, "URL", "https://qxa16wsr3g.execute-api.us-east-2.amazonaws.com/Live");
         pendingQueries[queryId] = true;
         policyIDindex[_externalPolicyID] = queryId; 
     }

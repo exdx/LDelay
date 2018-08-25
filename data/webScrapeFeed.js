@@ -2,8 +2,8 @@ const request = require('request');
 const cheerio = require('cheerio');
 
 /*
-Updated MTA API feed done directly via scarping website
-Looks for subway status div element and performs regex search for L Train Delay 
+Updated MTA API feed done directly via scraping website
+Looks for subway status div element and performs regex search for L Train Delays 
 If found, then train is assumed delayed, otherwise normal
 Planned Work is not assumed to mean a delay
 */
@@ -17,6 +17,10 @@ var customHeaderRequest = request.defaults({
 var LTRAINSTATUS = "Normal";
 
 customHeaderRequest.get(url, function(err, resp, body) {
+    if (err) {
+        LTRAINSTATUS = "Unknown";
+        return LTRAINSTATUS;
+    }
     $ = cheerio.load(body);
     var resp = $('#subwayDiv').text();
     var regex = "L Subway Delays";
