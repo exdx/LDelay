@@ -32,9 +32,11 @@ Vagrant.configure("2") do |config|
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
+  apt-get install -y xfce4
+  startxfce4&
   apt-get update
   # apt-get install -y node
-  apt-get install -y npm
+  # apt-get install -y npm
   git clone https://github.com/Denton24646/LDelay
   git clone https://github.com/oraclize/ethereum-bridge
   SHELL
