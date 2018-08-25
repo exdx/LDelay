@@ -8,3 +8,5 @@ node_modules
 .DS_store
 helper.rtf
 rinkeby.js
+ubuntu-xenial-16.04-cloudimg-console.log
+.vagrant/
