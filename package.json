@@ -54,7 +54,8 @@
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "request": "^2.88.0",
-    "request-promise": "^4.2.2"
+    "request-promise": "^4.2.2",
+    "truffle": "^4.1.12"
   },
   "scripts": {
     "start": "node scripts/start.js",

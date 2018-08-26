@@ -24,7 +24,7 @@ The end result in either case is the customer is given an opportunity to efficie
 # Setup
 LDelay can be run in two ways:
 1. By running a preconfigured Ubuntu 16.04 Vagrant environment which comes complete with Truffle, ethereum-bridge, Node.js and LDelay (__works on any machine__). Only
-Metamask will have to be installed manually.
+Metamask will have to be installed manually. *Not ready, please use the second method.*
 2. By downloading LDelay and locally running Truffle and ethereum-bridge.
 
 ### Setting up Vagrant
@@ -44,8 +44,20 @@ Metamask will have to be installed manually.
    instance.
 
 ### Running locally
-1. Download and install node (v8.0+), npm, and Metamask in your browser
-2. Install dependencies
+1. Download the Ubuntu 16.04 image ([torrent link](http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-amd64.iso.torrent))
+and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
+2. Start the VM and install node (v8.0+), npm, git, and Metamask in your browser
+    ```sh
+    # install curl
+    sudo apt-get install curl
+    # install node & npm
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    # install git
+    sudo apt-get install -y git
+    ```
+    MetaMask can be installed from the [Firefox add-ons store](https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/).
+3. Install project dependencies
     ```sh
     git clone https://github.com/Denton24646/LDelay
     cd LDelay
@@ -55,9 +67,9 @@ Metamask will have to be installed manually.
     cd ethereum-bridge
     npm install
     ```
-3. Run the Truffle development blockchain and ethereum-bridge in two seperate consoles (follow this exact order!)
+4. Run the Truffle development blockchain and ethereum-bridge in two seperate consoles (follow this exact order!)
     ```sh
-    #console one
+    # console one
     cd LDelay
     truffle develop
     # console two
@@ -68,7 +80,7 @@ Metamask will have to be installed manually.
     migrate
     test
     ```
-4. Start the React front end from the local server
+5. Start the React front end from the local server
     ```sh
     # console three
     cd LDelay
