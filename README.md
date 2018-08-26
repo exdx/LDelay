@@ -6,26 +6,34 @@ We all hate the feeling when our train is delayed right when we need to make an 
 
 ![alt text](https://i.imgur.com/OqqXrq3.png "LDelay Interface")
 
-## Implementation Details
-* Separation of concerns
-* Oraclize
-* Security
-* Metamask
-* React.js
-* Docs for more info on attacks/security patterns
-
 ## User Story
 A user knows he or she has to take the L train in 15 minutes to get to work - let's say it's 8:00 AM and they plan to arrive at the subway stop around 8:15 AM. They have a big meeting at work and can't be late! They go on LDelay to purchase a small amount of Ethereum based microinsurance (say a few dollars) to hedge against the train being delayed 15 minutes into the future (*right when they arrive at the station*). Using MetaMask they are able to send a transaction in to deposit a small premium and obtain coverage. Their deposit triggers a call to the data feed to obtain the status of the train in 15 minutes. The data feed comes directly from the MTA, the train service provider, and is as accurate as possible. After they purchase microinsurance they proceed to get ready and head to work. Fifteen minutes later there are two possible states of the world:
 * A) The data feed reports that the train is in fact delayed at 8:15 AM. How unfortunate! The smart contract updates the user's final policy status to delayed, which enables the user to initiate a claim in the future. The contract knows the user's address and how much of a payout they are entitled to. The user ends up late to work but has a few more dollars worth of ETH to show for it.
 * B) The train is on time. The smart contract updates the user's final policy status to normal, which does not allow the user to initiate a claim in the future. The user does not recieve a payout and their premium is left in the pool (to help insure the following users). Whatever small monetary loss they experience is offset by the knowledge they are on time to their meeting!
 
-The end result in either case is the customer is given an opportunity to efficiently deploy their capital to fulfill their needs at that point in time. Only through a decentralized, autonomous system like an Ethereum could such an application exist. 
+The end result in either case is the customer is given an opportunity to efficiently deploy their capital to fulfill their needs at that point in time. Only through a distributed virtual machine like Ethereum could such an application exist. 
+
+## Implementation Details
+* __Separation of concerns__ \
+There are two contracts in the dApp: a base contract that fulfills all the core logic and an oracle contract that is responsible for calling the oracle and recording the result. Both contracts are deployed together and talk to each other via their interfaces. Functions are written to be as simple and pure as possible, and multiple functions across the two contracts are called during contract execution. 
+* __Oraclize__ \
+The oracle contract uses the Oraclize library to send requests to the oracle endpoint. The oracle provider is an AWS Lambda endpoint that I deployed that queries data directly from the MTA and deserializes it. The MTA uses the protobuffer serialization format (common to real time transit systems) therefore the custom endpoint was necessary. See [data](https://github.com/Denton24646/LDelay/tree/master/data) for examples of the two different Lambda function implementations: calling the MTA GTFS API directly and webscraping. 
+* __Security__ \
+Security was a key focus for the project and was achieved by extensive use of require and assert statements and limiting contract interaction. For example, only the base contract can call certain oracle contract functions and vice-versa. Furthermore, a user may only take out one policy at a time, to fight adverse selection type attacks. See docs section for more info. 
+* __MetaMask__ \
+MetaMask is used to interact with the dApp front end in the browser. 
+* __React.js__ \
+The dApp front end was built using the React javascript library. 
+* __Docs__ \
+[Avoiding Common Attacks](https://github.com/Denton24646/LDelay/blob/master/docs/avoiding_common_attacks.md)
+\
+[Design Pattern Decisions](https://github.com/Denton24646/LDelay/blob/master/docs/design_pattern_decisions.md)
 
 # Setup
 LDelay can be run in two ways:
 1. By running a preconfigured Ubuntu 16.04 Vagrant environment which comes complete with Truffle, ethereum-bridge, Node.js and LDelay (__works on any machine__). Only
 Metamask will have to be installed manually. __*Not ready, please use the second method.*__
-2. By downloading LDelay and locally running Truffle and ethereum-bridge on a *nix machine or VM.
+2. By downloading LDelay and locally running Truffle and ethereum-bridge on a *nix machine or Ubuntu VM.
 
 ### Vagrant Setup
 1. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
@@ -45,8 +53,8 @@ Metamask will have to be installed manually. __*Not ready, please use the second
 
 ### Running locally
 1. Download the Ubuntu 16.04 image ([torrent link](http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-amd64.iso.torrent))
-and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
-2. Start the VM and install node (v8.0+), npm, git, truffle and Metamask. I recommend provisioning 4GB RAM for the VM.
+and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) if using a VM. I recommend provisioning 4GB RAM for the VM.
+2. Install node (v10.0+), npm, git, truffle and MetaMask. 
     ```sh
     # install curl
     sudo apt-get install curl
@@ -103,12 +111,26 @@ and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
 
 *Don't worry, this dApp is easy to use!*
 
+The front end has instructions on how to interact with the application - please read and follow those. Additional dev notes:
+* Pick five minutes as your input - this is the lowest possible time in the future you can issue a policy. 
+* If you look at the ethereum-bridge console window after issuing the oracle request you can see the HTTP query and the callback for the time you chose. 
+* The contract allows a user to only buy one policy at a time as a deliberate design choice. Therefore to test multiple policies switch to another of the 10 MetaMask default accounts. 
+* Don't forget to run ```rm -rf build/* ``` after editing contracts to have them recompile successfully. 
+* MetaMask in Firefox on an Ubuntu VM seems a little quirky - if the signing popup comes up after hitting a button but it appears grey, try resizing the popup window slightly. Then the details come up as normal. 
 
-# Improvements
-* Seperate payout/claims into separate contract
-* Variable premiums/limits
-* Deanonymization to prevent adverse selection
-* Only allow deposits when train status is normal (requiring additional oracle queries)
+# Improvements for Mainnet
+* __Harden Oracle__
+\
+There were some difficulties on getting the correct results from the MTA API directly - in some cases the website said the train was delayed whereas the API did not return alert objects for the L Train (as documented). Therefore the alternate oracle strategy of scraping the website directly for transit updates was used. Other issue is that the oracle returns "Normal" as the result and Solidity does not seem to like strings with quotation marks in them (needing escape characters). So in general the oracle needs some more refining and tests. 
+* __Variable premiums/limits__
+\
+The premium and limit amounts in the contract now are basically best guest estimates of an equilibrium and are not scientific in any way. Ideally there would be some analysis on the likelihood of a train delay based on different features like time of day, day of the week, etc and the prices would reflect these. Since that is more of an ML problem off-chain I decided not to focus attention here. 
+* __Seperate payout/claims into separate contract__
+\
+To enhance security a separate contract would be responsible for payouts. This is generally good practice and what Etherisc does in their FlightDelay dApp. 
+* __Only allow deposits when train status is normal__
+\
+Originally this was the plan but it complicated the design significantly as it requires additional oracle queries to determine the status at any point in time. 
 
 
 

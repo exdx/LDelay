@@ -179,6 +179,7 @@ class App extends Component {
               <button onClick={this.callOracle.bind(this)}>Call Oracle</button>
               <p>Your oracle query was sent and will return in {this.state.userTimeLimit} minutes!</p>
               <h2>4) Process Claim</h2>
+              <p>Use this after your oracle query has returned - otherwise your transaction will revert.</p>
               <button onClick={this.validateUserResult.bind(this)}>Verify Train Status</button>
               <p>The train status at the time you selected was {this.state.userTrainStatus}. </p>
               <p>You may make a claim and if your train was delayed you will automatically get sent your coverage amount!</p>
