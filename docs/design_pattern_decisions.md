@@ -8,4 +8,6 @@ Events are emitted in almost every function - this is used to debug and provide 
 
 Libraries are used extensively - primarily the Oraclize library to issue oracle requests as well as SafeMath and StringUtils to provide convenient interfaces for safely working with contract data. 
 
+In order to implement the emergency stop the Pausable contract was inherited by the Base contract. This means that the contract is ownable and pausable at any time in the case an attack is exhibited. This pause functionality was tested via javascript tests. This pattern was implemented because it was the most straightforward: Pausable is a well audited contract made by OpenZepplin so its definitely a good idea to use it instead of rolling your own emergency stop!
+
 One design decision that was considered but not implemented because of time constraints was to decouple the payments from the Base contract by introducing a Claims contract. The Claims contract would hold all the ether deposited by customers and be responsible for payouts. This would be more secure. 
