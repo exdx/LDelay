@@ -25,7 +25,7 @@ The end result in either case is the customer is given an opportunity to efficie
 LDelay can be run in two ways:
 1. By running a preconfigured Ubuntu 16.04 Vagrant environment which comes complete with Truffle, ethereum-bridge, Node.js and LDelay (__works on any machine__). Only
 Metamask will have to be installed manually. *Not ready, please use the second method.*
-2. By downloading LDelay and locally running Truffle and ethereum-bridge.
+2. By downloading LDelay and locally running TestRPC and ethereum-bridge on a Linux machine or VM.
 
 ### Setting up Vagrant
 1. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
@@ -46,7 +46,7 @@ Metamask will have to be installed manually. *Not ready, please use the second m
 ### Running locally
 1. Download the Ubuntu 16.04 image ([torrent link](http://releases.ubuntu.com/16.04/ubuntu-16.04.5-desktop-amd64.iso.torrent))
 and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
-2. Start the VM and install node (v8.0+), npm, git, and Metamask in your browser
+2. Start the VM and install node (v8.0+), npm, git, truffle and Metamask. I recommend provisioning 4GB RAM for the VM.
     ```sh
     # install curl
     sudo apt-get install curl
@@ -55,6 +55,8 @@ and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
     sudo apt-get install -y nodejs
     # install git
     sudo apt-get install -y git
+    # install truffle
+    sudo npm install -g truffle
     ```
     MetaMask can be installed from the [Firefox add-ons store](https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/).
 3. Install project dependencies
@@ -86,6 +88,16 @@ and [VirtualBox](https://www.virtualbox.org/wiki/Downloads).
     cd LDelay
     npm start
     ```
+    Be sure to configure MetaMask using the default mnemonic phrase:
+    ```
+    candy maple cake sugar pudding cream honey rich smooth crumble sweet treat 
+    ```
+    Add the custom RPC endpoint when choosing a network: 
+    ```
+    http://127.0.0.1:9545 
+    ```
+    and then refresh the app page. 
+    Once the app recognizes your MetaMask account you are good to go!
 # Getting Started
 ![Alt Text](https://media.giphy.com/media/JiuX6CeCM0us0/giphy.gif)
 
