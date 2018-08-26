@@ -24,10 +24,10 @@ The end result in either case is the customer is given an opportunity to efficie
 # Setup
 LDelay can be run in two ways:
 1. By running a preconfigured Ubuntu 16.04 Vagrant environment which comes complete with Truffle, ethereum-bridge, Node.js and LDelay (__works on any machine__). Only
-Metamask will have to be installed manually. *Not ready, please use the second method.*
-2. By downloading LDelay and locally running TestRPC and ethereum-bridge on a Linux machine or VM.
+Metamask will have to be installed manually. __*Not ready, please use the second method.*__
+2. By downloading LDelay and locally running Truffle and ethereum-bridge on a *nix machine or VM.
 
-### Setting up Vagrant
+### Vagrant Setup
 1. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 2. Install [Vagrant](https://www.vagrantup.com/downloads.html)
 3. Download and start the Vagrant instance (note: running `vagrant up` takes approx 5 mins):
