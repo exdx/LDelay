@@ -1,6 +1,8 @@
 # LDelay
 A decentralized application running on Ethereum which enables users to purchase parametric microinsurance covering L train delays. LDelay utilizes a live oracle feed which queries data directly from the MTA to establish whether your train was delayed and if you are eligible for a payout. 
 
+Context for folks outside NYC: The L is a subway line in NYC that connects Lower Manhattan to Brooklyn. The neighborhoods it passes through in Brooklyn are Williamsburg and Bushwick (considered very trendy areas). In fact, ConsenSys offices are off the L line in Bushwick. The MTA is the name of the agency responsible for adminstering subway train service in NYC. [See the wiki article](https://en.wikipedia.org/wiki/L_(New_York_City_Subway_service)) for more details.
+
 ## What's LDelay about?
 We all hate the feeling when our train is delayed right when we need to make an important trip - what if there were a way to buy a small amount of insurance to cover such an event? In the case of a delay you would get a payout above the small amount you paid for it. It would make the whole commute process a little more pleasant. The only way to provide such a service, cutting through all the red tape and bureacracy of established insurance channels, is through a public blockchain with rich smart contract capabilities.
 
