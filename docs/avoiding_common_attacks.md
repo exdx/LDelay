@@ -4,7 +4,7 @@ Several security decisions were made over the course of implementing the LDelay 
 
 For example, a user can only purchase one policy at a time from a given address. This prevents one attacking contract to perform a reentrancy attack and drain all the ether in the base contract at once. This is implemented by requiring the balance of msg.sender to be 0 for a user to be able to deposit a premium. Furthermore this limits adverse selection where a user buys a lot of microinsurance coverage and then intentionally delays the train, making a riskless profit. Reentrancy attacks are also limited by putting all send() and value transfers at the end of the relavant function after all checks and requirements are met. 
 
-Race conditions are limited by limiting state between contracts and requirements. For example the final policy status has to unknown in order for the oracle to query, and it has to be delayed in order for the payout to process. 
+Race conditions are limited by limiting state between contracts and requirements. For example the final policy status has to  be unknown in order for the oracle to query, and it has to be delayed in order for the payout to process. 
 
 Overflow/underflow attacks are minimized by use of the SafeMath library for all arithmetic operations. 
 
